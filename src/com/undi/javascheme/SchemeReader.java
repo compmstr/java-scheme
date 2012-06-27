@@ -10,15 +10,58 @@ public class SchemeReader {
   private static final int EOF = -1;
   //Allow up to 10 characters to be pushed back into the buffer
   private static final int PUSHBACK_SIZE = 10;
+  private ReadFunc[] readFuncs;
+  
+  private interface ReadFunc{
+    SchemeObject read();
+  }
   
   public SchemeReader(InputStream in){
     this.mBufIn = new PushbackInputStream(in, PUSHBACK_SIZE);
+    this.readFuncs = new ReadFunc[SchemeObject.type.NUM_TYPES.ordinal()];
+
+    this.readFuncs[SchemeObject.type.BOOLEAN.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readBoolean();} 
+    };
+    this.readFuncs[SchemeObject.type.NUMBER.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readNumber();} 
+    };
+    this.readFuncs[SchemeObject.type.CHARACTER.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readCharacter();} 
+    };
+    this.readFuncs[SchemeObject.type.STRING.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readString();} 
+    };
+    this.readFuncs[SchemeObject.type.SYMBOL.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readSymbol();} 
+    };
+    this.readFuncs[SchemeObject.type.PAIR.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){ return readPair();} 
+    };
+    this.readFuncs[SchemeObject.type.EMPTY_LIST.ordinal()] = new ReadFunc(){
+      public SchemeObject read(){
+        //clean up trailing ')'
+        getc();
+        return SchemeObject.EmptyList;
+        } 
+    };
+    
   }
   
   public boolean isDelimiter(int c){
     return Character.isWhitespace(c) ||
                       c == '(' || c == ')' ||
                       c == '"' || c == ';';
+  }
+  
+  /**
+   * Returns whether c is a possible initial character for a symbol
+   * @param c - character to check
+   * @return
+   */
+  public boolean isInitial(int c){
+    return Character.isLetter(c) || c == '*' || c == '/' || c == '>'||
+             c == '<' || c == '=' || c == '?' || c == '!';
   }
   
   /**
@@ -209,25 +252,44 @@ getString:
     return SchemeObject.cons(carObject, cdrObject);
   }
   
-  public SchemeObject read(){
-    switch(nextType()){
-    case NUMBER:
-      return readNumber();
-    case STRING:
-      return readString();
-    case CHARACTER:
-      return readCharacter();
-    case BOOLEAN:
-      return readBoolean();
-    case PAIR:
-      return readPair();
-    case EMPTY_LIST:
-      getc();
-      return SchemeObject.EmptyList;
+  public SchemeObject readSymbol(){
+    StringBuilder buffer = new StringBuilder();
+    
+    int c = getc();
+    while(isInitial(c) || Character.isDigit(c) ||
+        c == '+' || c == '-'){
+      buffer.append((char)c);
+      c = getc();
     }
+    if(isDelimiter(c)){
+      ungetc(c);
+      return SchemeObject.makeSymbol(buffer.toString());
+    }else{
+      System.err.println("Symbol not followed by delimiter");
+      System.exit(1);
+      return null;
+    }
+  }
+  
+  public SchemeObject read(){
+    boolean quoted = false;
+    eatWhitespace();
+    if(peek() == '\''){
+      getc();
+      quoted = true;
+    }
+    SchemeObject.type nextType = nextType();
+    if(this.readFuncs[nextType.ordinal()] != null){
+      if(quoted){
+        return SchemeObject.cons(SchemeObject.QuoteSymbol, SchemeObject.cons(this.readFuncs[nextType.ordinal()].read(), SchemeObject.EmptyList));
+      }else{
+        return this.readFuncs[nextType.ordinal()].read();
+      }
+    }
+
     System.err.println("Unsupported input type in read");
     System.exit(1);
-    return new SchemeObject();
+    return null;
   }
   
   /**
@@ -246,6 +308,10 @@ getString:
         (c == '-' && Character.isDigit(peek()))){
       ungetc(c);
       return SchemeObject.type.NUMBER;
+    }else if(isInitial(c) ||
+              ((c == '+' || c == '-') && isDelimiter(peek()))){
+      ungetc(c);
+      return SchemeObject.type.SYMBOL;
     }else if(c == '#'){
       next_char = (char)peek();
       switch(next_char){

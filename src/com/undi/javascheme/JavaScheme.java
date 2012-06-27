@@ -23,7 +23,7 @@ public class JavaScheme {
     //REPL loop
     while(true){
       System.out.print("> ");
-      System.out.println(evaluator.eval(reader.read(), null));
+      System.out.println(evaluator.eval(reader.read(), evaluator.getGlobalEnv()));
     }
 
   }

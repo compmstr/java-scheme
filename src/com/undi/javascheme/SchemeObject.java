@@ -2,12 +2,18 @@ package com.undi.javascheme;
 
 //This class works almost like a union
 public class SchemeObject {
-  public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST};
+  public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NUM_TYPES};
   public type getType(){return this.mType;}
   
   public static final SchemeObject True = SchemeObject.createBoolean(true);
   public static final SchemeObject False = SchemeObject.createBoolean(false);
   public static final SchemeObject EmptyList = SchemeObject.createEmptyList();
+  
+  public static SchemeObject SymbolTable = SchemeObject.EmptyList;
+  public static final SchemeObject QuoteSymbol = SchemeObject.makeSymbol("quote");
+  public static final SchemeObject DefineSymbol = SchemeObject.makeSymbol("define");
+  public static final SchemeObject SetSymbol = SchemeObject.makeSymbol("set!");
+  public static final SchemeObject OkSymbol = SchemeObject.makeSymbol("ok");
   
   //Pairs
   public static SchemeObject makePair(SchemeObject car, SchemeObject cdr){
@@ -19,6 +25,9 @@ public class SchemeObject {
     obj.setCar(car);
     obj.setCdr(cdr);
     return obj;
+  }
+  public boolean isPair(){
+    return this.mType == type.PAIR;
   }
   private void initPair(){
     this.mType = type.PAIR;
@@ -38,6 +47,17 @@ public class SchemeObject {
   public SchemeObject getCdr(){
     return ((SchemeObject[])this.mData)[1];
   }
+  public static SchemeObject car(SchemeObject obj){
+    return obj.getCar();
+  }
+  public static SchemeObject cdr(SchemeObject obj){
+    return obj.getCdr();
+  }
+  public static SchemeObject caar(SchemeObject obj){ return car(car(obj)); }
+  public static SchemeObject cadr(SchemeObject obj){ return car(cdr(obj)); }
+  public static SchemeObject cdar(SchemeObject obj){ return cdr(car(obj)); }
+  public static SchemeObject cddr(SchemeObject obj){ return cdr(cdr(obj)); }
+  public static SchemeObject caddr(SchemeObject obj){ return car(cdr(cdr(obj))); }
   public SchemeObject[] getPair(){
     if(this.mType != type.PAIR){
       System.err.println("Object Isn't a Pair!");
@@ -75,6 +95,9 @@ public class SchemeObject {
     obj.setNumber(value);
     return obj;
   }
+  public boolean isNumber(){
+    return this.mType == type.NUMBER;
+  }
   public double getNumber(){
     if(this.mType != type.NUMBER){
       System.err.println("Object Isn't a Number!");
@@ -92,6 +115,9 @@ public class SchemeObject {
     SchemeObject obj = new SchemeObject();
     obj.setBoolean(value);
     return obj;
+  }
+  public boolean isBoolean(){
+    return this.mType == type.BOOLEAN;
   }
   public static SchemeObject makeBoolean(boolean value){
     return (value) ? SchemeObject.True : SchemeObject.False;
@@ -114,6 +140,9 @@ public class SchemeObject {
     obj.setCharacter(value);
     return obj;
   }
+  public boolean isCharacter(){
+    return this.mType == type.CHARACTER;
+  }
   public short getCharacter(){
     if(this.mType != type.CHARACTER){
       System.err.println("Object Isn't a Character!");
@@ -131,6 +160,9 @@ public class SchemeObject {
     SchemeObject obj = new SchemeObject();
     obj.setString(value);
     return obj;
+  }
+  public boolean isString(){
+    return this.mType == type.STRING;
   }
   public char[] getString(){
     if(this.mType != type.STRING){
@@ -160,9 +192,21 @@ public class SchemeObject {
 
   //Symbols
   public static SchemeObject makeSymbol(String value){
+    //See if this symbol is in the symbol table
+    SchemeObject elt = SymbolTable;
+    while(!elt.isEmptyList()){
+      if(car(elt).getSymbol().equals(value)){
+        return car(elt);
+      }
+      elt = cdr(elt);
+    }
     SchemeObject obj = new SchemeObject();
     obj.setSymbol(value);
+    SymbolTable = cons(obj, SymbolTable);
     return obj;
+  }
+  public boolean isSymbol(){
+    return this.mType == type.SYMBOL;
   }
   public String getSymbol(){
     if(this.mType != type.SYMBOL){
@@ -201,10 +245,17 @@ public class SchemeObject {
     case BOOLEAN:
       tempString.append(getBoolean() ? "true" : "false");
       break;
+    case SYMBOL:
+      tempString.append(getSymbol());
+      break;
     case PAIR:
       tempString.append('(');
       this.writePair(tempString);
       tempString.append(')');
+      break;
+    case EMPTY_LIST:
+      tempString.append("()");
+      break;
     }
     
     //tempString.append(">");
