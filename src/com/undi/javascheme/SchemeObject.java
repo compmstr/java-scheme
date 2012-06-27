@@ -2,7 +2,8 @@ package com.undi.javascheme;
 
 //This class works almost like a union
 public class SchemeObject {
-  public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NUM_TYPES};
+  public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST,
+                            NATIVE_PROC, NUM_TYPES};
   public type getType(){return this.mType;}
   
   public static final SchemeObject True = SchemeObject.createBoolean(true);
@@ -14,6 +15,29 @@ public class SchemeObject {
   public static final SchemeObject DefineSymbol = SchemeObject.makeSymbol("define");
   public static final SchemeObject SetSymbol = SchemeObject.makeSymbol("set!");
   public static final SchemeObject OkSymbol = SchemeObject.makeSymbol("ok");
+  public static final SchemeObject IfSymbol = SchemeObject.makeSymbol("if");
+  
+  public interface nativeProc{
+    SchemeObject call(SchemeObject args);
+  }
+  
+  //Native Proc
+  public static SchemeObject makeNativeProc(nativeProc proc){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.NATIVE_PROC;
+    obj.mData = proc;
+    return obj;
+  }
+  public boolean isNativeProc(){
+    return this.mType == type.NATIVE_PROC;
+  }
+  public nativeProc getNativeProc(){
+    if(this.mType != type.NATIVE_PROC){
+      System.err.println("Object Isn't a Native Proc!");
+      System.exit(1);
+    }
+    return (nativeProc)this.mData;
+  }
   
   //Pairs
   public static SchemeObject makePair(SchemeObject car, SchemeObject cdr){
@@ -42,10 +66,18 @@ public class SchemeObject {
     data[1] = cdr;
   }
   public SchemeObject getCar(){
-    return ((SchemeObject[])this.mData)[0];
+    if(this.mType == type.PAIR){
+      return ((SchemeObject[])this.mData)[0];
+    }else{
+      return this;
+    }
   }
   public SchemeObject getCdr(){
-    return ((SchemeObject[])this.mData)[1];
+    if(this.mType == type.PAIR){
+      return ((SchemeObject[])this.mData)[1];
+    }else{
+      return EmptyList;
+    }
   }
   public static SchemeObject car(SchemeObject obj){
     return obj.getCar();
@@ -58,6 +90,7 @@ public class SchemeObject {
   public static SchemeObject cdar(SchemeObject obj){ return cdr(car(obj)); }
   public static SchemeObject cddr(SchemeObject obj){ return cdr(cdr(obj)); }
   public static SchemeObject caddr(SchemeObject obj){ return car(cdr(cdr(obj))); }
+  public static SchemeObject cadddr(SchemeObject obj){ return car(cdr(cdr(cdr(obj)))); }
   public SchemeObject[] getPair(){
     if(this.mType != type.PAIR){
       System.err.println("Object Isn't a Pair!");
@@ -67,6 +100,14 @@ public class SchemeObject {
   }
   public static SchemeObject cons(SchemeObject car, SchemeObject cdr){
     return SchemeObject.makePair(car, cdr);
+  }
+  
+  public static boolean isFalse(SchemeObject obj){
+    return obj == False;
+  }
+  
+  public static boolean isTrue(SchemeObject obj){
+    return !isFalse(obj);
   }
   
   /**
@@ -255,6 +296,9 @@ public class SchemeObject {
       break;
     case EMPTY_LIST:
       tempString.append("()");
+      break;
+    case NATIVE_PROC:
+      tempString.append("#<native procedure>");
       break;
     }
     

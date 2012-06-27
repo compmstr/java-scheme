@@ -11,8 +11,79 @@ public class SchemeEval {
   public boolean isSelfEvaluating(SchemeObject obj){
     return obj.isString() || obj.isBoolean() || obj.isNumber() || obj.isCharacter();
   }
+  
   public SchemeEval(){
     this.GlobalEnvironment = this.setupEnvironment();
+    //Set up native procedures
+    defineVariable(SchemeObject.makeSymbol("+"), 
+        SchemeNatives.add, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("-"), 
+        SchemeNatives.sub, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("*"), 
+        SchemeNatives.mult, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("quotient"), 
+        SchemeNatives.quotient, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("/"), 
+        SchemeNatives.div, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("remainder"), 
+        SchemeNatives.mod, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("="), 
+        SchemeNatives.numEql, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol(">"), 
+        SchemeNatives.greaterThan, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("<"), 
+        SchemeNatives.lessThan, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("cons"), 
+        SchemeNatives.cons, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("car"), 
+        SchemeNatives.car, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("cdr"), 
+        SchemeNatives.cdr, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("set-car!"), 
+        SchemeNatives.setCar, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("set-cdr!"), 
+        SchemeNatives.setCdr, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("list"), 
+        SchemeNatives.list, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("null?"), 
+        SchemeNatives.nullp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("boolean?"), 
+        SchemeNatives.booleanp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("symbol?"), 
+        SchemeNatives.symbolp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("number?"), 
+        SchemeNatives.numberp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("character?"), 
+        SchemeNatives.characterp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("string?"), 
+        SchemeNatives.stringp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("pair?"), 
+        SchemeNatives.pairp, 
+        this.GlobalEnvironment);
+    defineVariable(SchemeObject.makeSymbol("procedure?"), 
+        SchemeNatives.procedurep, 
+        this.GlobalEnvironment);
   }
   
   public boolean isTaggedList(SchemeObject obj, SchemeObject tag){
@@ -62,6 +133,52 @@ public class SchemeEval {
   public SchemeObject evalDefinition(SchemeObject exp, SchemeObject env){
     defineVariable(definitionVariable(exp), eval(definitionValue(exp), env), env);
     return SchemeObject.OkSymbol;
+  }
+  
+  public boolean isIf(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.IfSymbol);
+  }
+  public SchemeObject ifPredicate(SchemeObject exp){
+    return SchemeObject.cadr(exp);
+  }
+  public SchemeObject ifThen(SchemeObject exp){
+    return SchemeObject.caddr(exp);
+  }
+  public SchemeObject ifElse(SchemeObject exp){
+    if(SchemeObject.cadddr(exp).isEmptyList()){
+      return SchemeObject.False;
+    }else{
+      return SchemeObject.cadddr(exp);
+    }
+  }
+  
+  public boolean isApplication(SchemeObject exp){
+    return exp.isPair();
+  }
+  public SchemeObject operator(SchemeObject exp){
+    return exp.getCar();
+  }
+  public SchemeObject operands(SchemeObject exp){
+    return exp.getCdr();
+  }
+  
+  public boolean isNoOperands(SchemeObject ops){
+    return ops.isEmptyList();
+  }
+  public SchemeObject firstOperand(SchemeObject ops){
+    return ops.getCar();
+  }
+  public SchemeObject restOperands(SchemeObject ops){
+    return ops.getCdr();
+  }
+  
+  public SchemeObject listOfValues(SchemeObject exps, SchemeObject env){
+    if(isNoOperands(exps)){
+      return SchemeObject.EmptyList;
+    }else{
+      return SchemeObject.cons(eval(firstOperand(exps), env),
+                                listOfValues(restOperands(exps), env));
+    }
   }
   
   //Environment stuff
@@ -160,26 +277,44 @@ public class SchemeEval {
     initialEnv = extendEnvironment(SchemeObject.EmptyList,
                                       SchemeObject.EmptyList, 
                                       EmptyEnvironment);
+    
     return initialEnv;
   }
   
   public SchemeObject eval(SchemeObject exp, SchemeObject env){
-    if(isSelfEvaluating(exp)){
-      return exp;
-    }else if(isQuoted(exp)){
-      return quoteContents(exp);
-    }else if(isVariable(exp)){
-      return lookupVariableValue(exp, env);
-    }else if(isAssignment(exp)){
-      return evalAssignment(exp, env);
-    }else if(isDefinition(exp)){
-      return evalDefinition(exp, env);
-    }else{
-      System.err.println("Unsupported expression type");
-      System.exit(0);
-    }
-    System.err.println("Illegal eval state");
-    System.exit(0);
-    return null;
+    SchemeObject procedure;
+    SchemeObject arguments;
+    TAILCALL:
+      while(true){
+        if(isSelfEvaluating(exp)){
+          return exp;
+        }else if(isQuoted(exp)){
+          return quoteContents(exp);
+        }else if(isDefinition(exp)){
+          return evalDefinition(exp, env);
+        }else if(isAssignment(exp)){
+          return evalAssignment(exp, env);
+        }else if(isVariable(exp)){
+          return lookupVariableValue(exp, env);
+        }else if(isIf(exp)){
+          exp = SchemeObject.isTrue(eval(ifPredicate(exp), env))?
+              ifThen(exp) :
+                ifElse(exp);
+              //equiv: goto TAILCALL
+              continue TAILCALL;
+        }else if(isApplication(exp)){
+          procedure = eval(operator(exp), env);
+          arguments = listOfValues(operands(exp), env);
+          return procedure.getNativeProc().call(arguments);
+        }else{
+          System.err.println("Unsupported expression type");
+          System.exit(0);
+        }
+        //Only want to run the while loop once
+        break;
+      }
+  System.err.println("Illegal eval state");
+  System.exit(0);
+  return null;
   }
 }

@@ -176,29 +176,66 @@ getString:
     return SchemeObject.makeNumber(sign * Double.valueOf(numString));
   }
   
-  public SchemeObject readCharacter(){
-    StringBuilder tmp = new StringBuilder();
-    eatWhitespace();
-    while(!Character.isWhitespace(peek())){
-      tmp.append((char)getc());
-    }
-    String charString = tmp.toString();
-    char[] charArray = charString.toCharArray();
-    char toInsert;
-    if(charString.length() > 2){
-      if(charString.equals("\\newline")){
-        toInsert = '\n';
-      }else if(charString.equals("\\space")){
-        toInsert = ' ';
-      }else{
-        toInsert = '\0';
-        System.err.println("Invalid Character");
+  /**
+   * Checks to make sure whatToEat is next in the input buffer
+   *   if so, consumes that string, otherwise exits with an error
+   * @param whatToEat
+   */
+  public void eatExpectedString(String whatToEat){
+    char[] str = whatToEat.toCharArray();
+    int index = 0;
+    int c;
+    while(index < str.length){
+      c = getc();
+      if(c != str[index]){
+        System.err.println("Error, unexpected character");
         System.exit(1);
       }
-    }else{
-      toInsert = charArray[1];
+      index++;
     }
-    return SchemeObject.makeCharacter((short)toInsert);
+  }
+  
+  /**
+   * Checks to make sure a delimiter is next in our input buffer
+   * If not, exits the program
+   */
+  public void peekExpectedDelimiter(){
+    if(!isDelimiter(peek())){
+      System.err.println("Delimiter not found in peekExpectedDelimiter");
+      System.exit(1);
+    }
+  }
+  
+  public SchemeObject readCharacter(){
+    int c;
+    c = getc();
+    if(c != '\\'){
+      System.err.println("Invalid character, no \\");
+      System.exit(1);
+    }
+    c = getc();
+    switch(c){
+    case EOF:
+      System.err.println("Incomplete Character Literal");
+      System.exit(1);
+      return null;
+    case 's':
+      if(peek() == 'p'){
+        eatExpectedString("pace");
+        peekExpectedDelimiter();
+        return SchemeObject.makeCharacter((short) ' ');
+      }
+      break;
+    case 'n':
+      if(peek() == 'e'){
+        eatExpectedString("ewline");
+        peekExpectedDelimiter();
+        return SchemeObject.makeCharacter((short) '\n');
+      }
+      break;
+    }
+    peekExpectedDelimiter();
+    return SchemeObject.makeCharacter((short) c);
   }
   
   public SchemeObject readBoolean(){
