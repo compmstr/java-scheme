@@ -146,6 +146,12 @@ public class SchemeEval {
   }
   
   //If Stuff
+  public SchemeObject makeIf(SchemeObject predicate, SchemeObject ifThen, SchemeObject ifElse){
+    return SchemeObject.cons(SchemeObject.IfSymbol,
+                        SchemeObject.cons(predicate, 
+                            SchemeObject.cons(ifThen, 
+                                SchemeObject.cons(ifElse, SchemeObject.EmptyList))));
+  }
   public boolean isIf(SchemeObject exp){
     return isTaggedList(exp, SchemeObject.IfSymbol);
   }
@@ -163,6 +169,60 @@ public class SchemeEval {
     }
   }
   
+  //Cond stuff
+  public boolean isCond(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.CondSymbol);
+  }
+  public SchemeObject condClauses(SchemeObject exp){
+    return exp.getCdr();
+  }
+  public SchemeObject condPredicate(SchemeObject clause){
+    return clause.getCar();
+  }
+  public SchemeObject condActions(SchemeObject clause){
+    return clause.getCdr();
+  }
+  public boolean isCondElseClause(SchemeObject clause){
+    return condPredicate(clause) == SchemeObject.ElseSymbol;
+  }
+  public SchemeObject sequenceToExp(SchemeObject seq){
+    if(seq.isEmptyList()){
+      return seq;
+    }else if(isLastExp(seq)){
+      return firstExp(seq);
+    }else{
+      return makeBegin(seq);
+    }
+  }
+  public SchemeObject expandClauses(SchemeObject clauses){
+    SchemeObject first;
+    SchemeObject rest;
+    if(clauses.isEmptyList()){
+      return SchemeObject.False;
+    }else{
+      first = clauses.getCar();
+      rest = clauses.getCdr();
+      if(isCondElseClause(first)){
+        if(rest.isEmptyList()){
+          return sequenceToExp(condActions(first));
+        }else{
+          System.err.println("else clause isn't last in cond ");
+          System.exit(1);
+        }
+      }else{
+        return makeIf(condPredicate(first),
+                      sequenceToExp(condActions(first)),
+                      expandClauses(rest));
+      }
+    }
+    return null;
+  }
+  
+  public SchemeObject condToIf(SchemeObject exp){
+    return expandClauses(condClauses(exp));
+  }
+  
+  //Application (procedure call)
   public boolean isApplication(SchemeObject exp){
     return exp.isPair();
   }
@@ -322,6 +382,9 @@ public class SchemeEval {
             exp = restExps(exp);
           }
           exp = firstExp(exp);
+          continue TAILCALL;
+        }else if(isCond(exp)){
+          exp = condToIf(exp);
           continue TAILCALL;
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);

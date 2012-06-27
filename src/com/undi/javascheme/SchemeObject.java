@@ -18,6 +18,8 @@ public class SchemeObject {
   public static final SchemeObject IfSymbol = SchemeObject.makeSymbol("if");
   public static final SchemeObject LambdaSymbol = SchemeObject.makeSymbol("lambda");
   public static final SchemeObject BeginSymbol = SchemeObject.makeSymbol("begin");
+  public static final SchemeObject CondSymbol = SchemeObject.makeSymbol("cond");
+  public static final SchemeObject ElseSymbol = SchemeObject.makeSymbol("else");
   
   
   //TODO: This doesn't work
