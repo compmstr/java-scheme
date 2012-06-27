@@ -1,5 +1,6 @@
 package com.undi.javascheme;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
@@ -14,6 +15,10 @@ public class SchemeReader {
   
   private interface ReadFunc{
     SchemeObject read();
+  }
+  
+  public static SchemeReader fromString(String in){
+    return new SchemeReader(new ByteArrayInputStream(in.getBytes()));
   }
   
   public SchemeReader(InputStream in){
