@@ -1,17 +1,18 @@
 package com.undi.javascheme;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 
 public class SchemeReader {
-  private BufferedInputStream mBufIn;
-  private static final int MARK_LIMIT = 1024;
+  private PushbackInputStream mBufIn;
   //read() returns -1 on end of stream
   private static final int EOF = -1;
+  //Allow up to 10 characters to be pushed back into the buffer
+  private static final int PUSHBACK_SIZE = 10;
   
   public SchemeReader(InputStream in){
-    this.mBufIn = new BufferedInputStream(in);
+    this.mBufIn = new PushbackInputStream(in, PUSHBACK_SIZE);
   }
   
   public boolean isDelimiter(int c){
@@ -26,14 +27,12 @@ public class SchemeReader {
    */
   public String readToken(){
     int c;
-    mBufIn.mark(MARK_LIMIT);
     StringBuilder theToken = new StringBuilder();
     eatWhitespace();
     do{
       c = getc();
       theToken.append((char) c);
     }while(!isDelimiter(c));
-    skipNChars(theToken.length() - 1);
     theToken.deleteCharAt(theToken.length() - 1);
     return theToken.toString();
   }
@@ -43,10 +42,9 @@ public class SchemeReader {
    * @return the next character
    */
   public int peek(){
-    mBufIn.mark(MARK_LIMIT);
     int c = getc();
     //Reset by skipping 0 characters since mark
-    skipNChars(0);
+    ungetc(c);
     return c;
   }
   
@@ -64,16 +62,9 @@ public class SchemeReader {
     }
     return -1;
   }
-  
-  /**
-   * Skips n characters since last mark.
-   * Handles IOExceptions from reset or skip
-   * @param n Number of characters to skip
-   */
-  private void skipNChars(long n){
+  public void ungetc(int c){
     try{
-       mBufIn.reset();
-       mBufIn.skip(n);
+      mBufIn.unread(c);
     }catch (IOException e){
       e.printStackTrace(System.err);
       System.exit(1);
@@ -81,41 +72,22 @@ public class SchemeReader {
   }
   
   public void eatWhitespace(){
-    mBufIn.mark(MARK_LIMIT);
-    int toSkip = 0;
-    int c = -1;
-    while(true){
-      c = getc();
-      if(c == EOF){
-        System.out.println("Reached EOF");
-        break;
+    int c;
+    while((c = getc()) != EOF){
+      if(Character.isWhitespace((char)c)){
+        continue;
+      }else if(c == ';'){
+        while(((c = getc()) != EOF) && (c != '\n'));
+        continue;
       }
-      if(!Character.isWhitespace(c)){
-        if(c == ';'){
-          //Comments are counted as whitespace
-          while(((c = getc()) != EOF) && c != '\n');
-          //We want to start at 0 at the next iteration
-          toSkip = -1;
-          mBufIn.mark(MARK_LIMIT);
-        }
-        break;
-      }
-      //Increment toSkip, checking if we've reached mark_limit
-      toSkip++;
-      if(toSkip >= MARK_LIMIT){
-        toSkip = 0;
-        skipNChars(MARK_LIMIT);
-        mBufIn.mark(MARK_LIMIT);
-      }
+      ungetc(c);
+      break;
     }
-    skipNChars(toSkip);
   }
   
   public SchemeObject readString(){
     StringBuilder tempString = new StringBuilder();
     eatWhitespace();
-    //Grab the first "
-    getc();
     int newChar = -1;
 getString:
     while(true){
@@ -145,27 +117,35 @@ getString:
   public SchemeObject readNumber(){
     StringBuilder tmp = new StringBuilder();
     eatWhitespace();
-    while(!isDelimiter(peek())){
+    short sign = 1;
+    if(peek() == '-'){
+      getc();
+      sign = -1;
+    }
+    while(Character.isDigit(peek())){
       tmp.append((char)getc());
     }
+    if(!isDelimiter(peek())){
+      System.err.println("Number not followed by delimiter");
+      System.exit(1);
+    }
     String numString = tmp.toString();
-    return SchemeObject.makeNumber(Double.valueOf(numString));
+    return SchemeObject.makeNumber(sign * Double.valueOf(numString));
   }
   
-  //TODO: reading quotes doesn't work
   public SchemeObject readCharacter(){
     StringBuilder tmp = new StringBuilder();
     eatWhitespace();
-    while(!isDelimiter(peek())){
+    while(!Character.isWhitespace(peek())){
       tmp.append((char)getc());
     }
     String charString = tmp.toString();
     char[] charArray = charString.toCharArray();
     char toInsert;
-    if(charString.length() > 3){
-      if(charString.equals("#\\newline")){
+    if(charString.length() > 2){
+      if(charString.equals("\\newline")){
         toInsert = '\n';
-      }else if(charString.equals("#\\space")){
+      }else if(charString.equals("\\space")){
         toInsert = ' ';
       }else{
         toInsert = '\0';
@@ -173,16 +153,14 @@ getString:
         System.exit(1);
       }
     }else{
-      toInsert = charArray[2];
+      toInsert = charArray[1];
     }
     return SchemeObject.makeCharacter((short)toInsert);
   }
   
   public SchemeObject readBoolean(){
     //char[] boolString = readToken().toCharArray();
-    //Get the '#'
     eatWhitespace();
-    getc();
     char boolChar = (char)getc();
     boolean retVal;
     if(boolChar == 't'){
@@ -197,39 +175,34 @@ getString:
     return SchemeObject.makeBoolean(retVal);
   }
   
-  //TODO: There is an issue with reading nested lists as a last item
-  //      ex: ((1 2) 3) works, but not (1 (2 3))
-  //          (1 (2 3) 4) doesn't work either
   public SchemeObject readPair(){
-    //Get initial '('
     eatWhitespace();
-    if(peek() == '('){
-      getc(); 
+    int c = getc();
+    if(c == ')'){
+      return SchemeObject.EmptyList;
     }
-    if(peek() == ')'){
-      getc();
-      return SchemeObject.makeEmptyList();
-    }
+    ungetc(c);
     SchemeObject carObject = read();
     
     SchemeObject cdrObject = null;
     eatWhitespace();
-    if(peek() == '.'){
+    c = getc();
+    if(c == '.'){
       //take in the improper list form
-      getc();
+      c = peek();
       if(!isDelimiter(peek())){
         System.err.println("Error: dot not followed by delimiter");
         System.exit(1);
       }
-      eatWhitespace();
       cdrObject = read();
       eatWhitespace();
-      if(peek() != ')'){
+      c = getc();
+      if(c != ')'){
         System.err.println("Error: no trailing right paren on dot form");
         System.exit(1);
       }
-      getc();
     }else{
+      ungetc(c);
       cdrObject = readPair();
     }
     
@@ -248,6 +221,9 @@ getString:
       return readBoolean();
     case PAIR:
       return readPair();
+    case EMPTY_LIST:
+      getc();
+      return SchemeObject.EmptyList;
     }
     System.err.println("Unsupported input type in read");
     System.exit(1);
@@ -260,27 +236,36 @@ getString:
    */
   private SchemeObject.type nextType(){
     SchemeObject.type retType = null;
-    mBufIn.mark(MARK_LIMIT);
     eatWhitespace();
-    //char[] nextToken = readToken().toCharArray();
-    char nextToken = (char)getc();
-    if(nextToken == '"'){
+    //char[] c = readToken().toCharArray();
+    char c = (char)getc();
+    char next_char;
+    if(c == '"'){
        retType = SchemeObject.type.STRING;
-    }else if(Character.isDigit(nextToken) ||
-        (nextToken == '-' && Character.isDigit(getc()))){
-      retType = SchemeObject.type.NUMBER;
-    }else if(nextToken == '#'){
-      nextToken = (char)getc();
-      if(nextToken == '\\'){
-        retType = SchemeObject.type.CHARACTER;
-      }else if(nextToken == 't' || nextToken == 'f'){
-        retType = SchemeObject.type.BOOLEAN;
+    }else if(Character.isDigit(c) ||
+        (c == '-' && Character.isDigit(peek()))){
+      ungetc(c);
+      return SchemeObject.type.NUMBER;
+    }else if(c == '#'){
+      next_char = (char)peek();
+      switch(next_char){
+      case '\\':
+        return SchemeObject.type.CHARACTER;
+      case 't':
+      case 'f':
+        return SchemeObject.type.BOOLEAN;
+      default:
+        System.err.println("Unkown boolean or character literal");
+        System.exit(1);
       }
-    }else if(nextToken == '('){
-      retType = SchemeObject.type.PAIR;
+    }else if(c == '('){
+      if(peek() == ')'){
+        return SchemeObject.type.EMPTY_LIST;
+      }else{
+        retType = SchemeObject.type.PAIR;
+      }
     }
     
-    skipNChars(0);
     if(retType == null){
       System.err.println("Unsupported type read");
       System.exit(1);
