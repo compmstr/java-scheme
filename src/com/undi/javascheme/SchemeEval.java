@@ -125,6 +125,16 @@ public class SchemeEval {
     return SchemeObject.cddr(exp);
   }
   
+  //Begin stuff
+  public SchemeObject makeBegin(SchemeObject exp){
+    return SchemeObject.cons(SchemeObject.BeginSymbol, exp);
+  }
+  public boolean isBegin(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.BeginSymbol);
+  }
+  public SchemeObject beginActions(SchemeObject exp){
+    return exp.getCdr();
+  }
   public boolean isLastExp(SchemeObject seq){
     return seq.getCdr().isEmptyList();
   }
@@ -305,6 +315,14 @@ public class SchemeEval {
               continue TAILCALL;
         }else if(isLambda(exp)){
           return SchemeObject.makeCompoundProc(lambdaParams(exp), lambdaBody(exp), env);
+        }else if(isBegin(exp)){
+          exp = beginActions(exp);
+          while(!isLastExp(exp)){
+            eval(firstExp(exp), env);
+            exp = restExps(exp);
+          }
+          exp = firstExp(exp);
+          continue TAILCALL;
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);
           arguments = listOfValues(operands(exp), env);
@@ -314,12 +332,7 @@ public class SchemeEval {
             env = extendEnvironment(procedure.getCompoundProcParams(),
                                     arguments,
                                     procedure.getCompoundProcEnv());
-            exp = procedure.getCompoundProcBody();
-            while(!isLastExp(exp)){
-              eval(firstExp(exp), env);
-              exp = restExps(exp);
-            }
-            exp = firstExp(exp);
+            exp = makeBegin(procedure.getCompoundProcBody());
             continue TAILCALL;
           }else{
             System.err.println("Unsupported procedure type");
