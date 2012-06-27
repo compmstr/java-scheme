@@ -3,7 +3,7 @@ package com.undi.javascheme;
 //This class works almost like a union
 public class SchemeObject {
   public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST,
-                            NATIVE_PROC, NUM_TYPES};
+                            NATIVE_PROC, COMPOUND_PROC, NUM_TYPES};
   public type getType(){return this.mType;}
   
   public static final SchemeObject True = SchemeObject.createBoolean(true);
@@ -16,13 +16,60 @@ public class SchemeObject {
   public static final SchemeObject SetSymbol = SchemeObject.makeSymbol("set!");
   public static final SchemeObject OkSymbol = SchemeObject.makeSymbol("ok");
   public static final SchemeObject IfSymbol = SchemeObject.makeSymbol("if");
+  public static final SchemeObject LambdaSymbol = SchemeObject.makeSymbol("lambda");
   
-  public interface nativeProc{
-    SchemeObject call(SchemeObject args);
+  
+  //TODO: This doesn't work
+  public boolean valueEqual(SchemeObject other){
+    if(other.mType == this.mType){
+      if(other.mData == this.mData){
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  //Compound Proc
+  public static SchemeObject makeCompoundProc(SchemeObject params, SchemeObject body, SchemeObject env){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.COMPOUND_PROC;
+    SchemeObject[] newData = new SchemeObject[3];
+    newData[0] = params;
+    newData[1] = body;
+    newData[2] = env;
+    obj.mData = newData;
+    return obj;
+  }
+  public SchemeObject getCompoundProcParams(){
+    if(this.mType != type.COMPOUND_PROC){
+      System.err.println("Object Isn't a Compound Proc!");
+      System.exit(1);
+    }
+    SchemeObject[] data = (SchemeObject[])this.mData;
+    return data[0];
+  }
+  public SchemeObject getCompoundProcBody(){
+    if(this.mType != type.COMPOUND_PROC){
+      System.err.println("Object Isn't a Compound Proc!");
+      System.exit(1);
+    }
+    SchemeObject[] data = (SchemeObject[])this.mData;
+    return data[1];
+  }
+  public SchemeObject getCompoundProcEnv(){
+    if(this.mType != type.COMPOUND_PROC){
+      System.err.println("Object Isn't a Compound Proc!");
+      System.exit(1);
+    }
+    SchemeObject[] data = (SchemeObject[])this.mData;
+    return data[2];
+  }
+  public boolean isCompoundProc(){
+    return this.mType == type.COMPOUND_PROC;
   }
   
   //Native Proc
-  public static SchemeObject makeNativeProc(nativeProc proc){
+  public static SchemeObject makeNativeProc(SchemeNatives.nativeProc proc){
     SchemeObject obj = new SchemeObject();
     obj.mType = type.NATIVE_PROC;
     obj.mData = proc;
@@ -31,12 +78,12 @@ public class SchemeObject {
   public boolean isNativeProc(){
     return this.mType == type.NATIVE_PROC;
   }
-  public nativeProc getNativeProc(){
+  public SchemeNatives.nativeProc getNativeProc(){
     if(this.mType != type.NATIVE_PROC){
       System.err.println("Object Isn't a Native Proc!");
       System.exit(1);
     }
-    return (nativeProc)this.mData;
+    return (SchemeNatives.nativeProc)this.mData;
   }
   
   //Pairs
@@ -90,7 +137,10 @@ public class SchemeObject {
   public static SchemeObject cdar(SchemeObject obj){ return cdr(car(obj)); }
   public static SchemeObject cddr(SchemeObject obj){ return cdr(cdr(obj)); }
   public static SchemeObject caddr(SchemeObject obj){ return car(cdr(cdr(obj))); }
+  public static SchemeObject cdadr(SchemeObject obj){ return cdr(car(cdr(obj))); }
+  public static SchemeObject caadr(SchemeObject obj){ return car(car(cdr(obj))); }
   public static SchemeObject cadddr(SchemeObject obj){ return car(cdr(cdr(cdr(obj)))); }
+  public static SchemeObject caaddr(SchemeObject obj){ return car(car(cdr(cdr(obj)))); }
   public SchemeObject[] getPair(){
     if(this.mType != type.PAIR){
       System.err.println("Object Isn't a Pair!");
@@ -297,6 +347,7 @@ public class SchemeObject {
     case EMPTY_LIST:
       tempString.append("()");
       break;
+    case COMPOUND_PROC:
     case NATIVE_PROC:
       tempString.append("#<native procedure>");
       break;

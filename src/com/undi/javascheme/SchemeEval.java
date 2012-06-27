@@ -12,78 +12,45 @@ public class SchemeEval {
     return obj.isString() || obj.isBoolean() || obj.isNumber() || obj.isCharacter();
   }
   
+  public void addNativeProc(String symbol, SchemeObject proc){
+    defineVariable(SchemeObject.makeSymbol(symbol),
+                    proc,
+                    this.GlobalEnvironment);
+  }
+  
   public SchemeEval(){
     this.GlobalEnvironment = this.setupEnvironment();
     //Set up native procedures
-    defineVariable(SchemeObject.makeSymbol("+"), 
-        SchemeNatives.add, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("-"), 
-        SchemeNatives.sub, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("*"), 
-        SchemeNatives.mult, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("quotient"), 
-        SchemeNatives.quotient, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("/"), 
-        SchemeNatives.div, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("remainder"), 
-        SchemeNatives.mod, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("="), 
-        SchemeNatives.numEql, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol(">"), 
-        SchemeNatives.greaterThan, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("<"), 
-        SchemeNatives.lessThan, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("cons"), 
-        SchemeNatives.cons, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("car"), 
-        SchemeNatives.car, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("cdr"), 
-        SchemeNatives.cdr, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("set-car!"), 
-        SchemeNatives.setCar, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("set-cdr!"), 
-        SchemeNatives.setCdr, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("list"), 
-        SchemeNatives.list, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("null?"), 
-        SchemeNatives.nullp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("boolean?"), 
-        SchemeNatives.booleanp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("symbol?"), 
-        SchemeNatives.symbolp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("number?"), 
-        SchemeNatives.numberp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("character?"), 
-        SchemeNatives.characterp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("string?"), 
-        SchemeNatives.stringp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("pair?"), 
-        SchemeNatives.pairp, 
-        this.GlobalEnvironment);
-    defineVariable(SchemeObject.makeSymbol("procedure?"), 
-        SchemeNatives.procedurep, 
-        this.GlobalEnvironment);
+    addNativeProc("+", SchemeNatives.add); 
+    addNativeProc("-", SchemeNatives.sub); 
+    addNativeProc("*", SchemeNatives.mult); 
+    addNativeProc("quotient", SchemeNatives.quotient); 
+    addNativeProc("/", SchemeNatives.div); 
+    addNativeProc("remainder", SchemeNatives.mod); 
+    addNativeProc("=", SchemeNatives.numEql); 
+    addNativeProc(">", SchemeNatives.greaterThan); 
+    addNativeProc("<", SchemeNatives.lessThan); 
+    addNativeProc("cons", SchemeNatives.cons); 
+    addNativeProc("car", SchemeNatives.car); 
+    addNativeProc("cdr", SchemeNatives.cdr); 
+    addNativeProc("set-car!", SchemeNatives.setCar); 
+    addNativeProc("set-cdr!", SchemeNatives.setCdr); 
+    addNativeProc("list", SchemeNatives.list); 
+    addNativeProc("null?", SchemeNatives.nullp); 
+    addNativeProc("boolean?", SchemeNatives.booleanp); 
+    addNativeProc("symbol?", SchemeNatives.symbolp); 
+    addNativeProc("number?", SchemeNatives.numberp); 
+    addNativeProc("character?", SchemeNatives.characterp); 
+    addNativeProc("string?", SchemeNatives.stringp); 
+    addNativeProc("pair?", SchemeNatives.pairp); 
+    addNativeProc("procedure?", SchemeNatives.procedurep); 
+    addNativeProc("number->string", SchemeNatives.numberToString); 
+    addNativeProc("string->number", SchemeNatives.stringToNumber); 
+    addNativeProc("symbol->string", SchemeNatives.symbolToString); 
+    addNativeProc("string->symbol", SchemeNatives.stringToSymbol); 
+    addNativeProc("char->number", SchemeNatives.characterToNumber); 
+    addNativeProc("number->char", SchemeNatives.numberToCharacter); 
+    addNativeProc("eq?", SchemeNatives.eqp); 
   }
   
   public boolean isTaggedList(SchemeObject obj, SchemeObject tag){
@@ -120,10 +87,19 @@ public class SchemeEval {
     return isTaggedList(exp, SchemeObject.DefineSymbol);
   }
   public SchemeObject definitionVariable(SchemeObject exp){
-    return SchemeObject.cadr(exp);
+    if(SchemeObject.cadr(exp).isSymbol()){
+      return SchemeObject.cadr(exp);
+    }else{
+      return SchemeObject.caadr(exp);
+    }
   }
+  
   public SchemeObject definitionValue(SchemeObject exp){
-    return SchemeObject.caddr(exp);
+    if(SchemeObject.cadr(exp).isSymbol()){
+      return SchemeObject.caddr(exp);
+    }else{
+      return makeLambda(SchemeObject.cdadr(exp), SchemeObject.cddr(exp));
+    }
   }
   
   public SchemeObject evalAssignment(SchemeObject exp, SchemeObject env){
@@ -135,6 +111,31 @@ public class SchemeEval {
     return SchemeObject.OkSymbol;
   }
   
+  //Lambda Stuff
+  public SchemeObject makeLambda(SchemeObject params, SchemeObject body){
+    return SchemeObject.cons(SchemeObject.LambdaSymbol, SchemeObject.cons(params, body));
+  }
+  public boolean isLambda(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.LambdaSymbol);
+  }
+  public SchemeObject lambdaParams(SchemeObject exp){
+    return SchemeObject.cadr(exp);
+  }
+  public SchemeObject lambdaBody(SchemeObject exp){
+    return SchemeObject.cddr(exp);
+  }
+  
+  public boolean isLastExp(SchemeObject seq){
+    return seq.getCdr().isEmptyList();
+  }
+  public SchemeObject firstExp(SchemeObject seq){
+    return seq.getCar();
+  }
+  public SchemeObject restExps(SchemeObject seq){
+    return seq.getCdr();
+  }
+  
+  //If Stuff
   public boolean isIf(SchemeObject exp){
     return isTaggedList(exp, SchemeObject.IfSymbol);
   }
@@ -302,10 +303,28 @@ public class SchemeEval {
                 ifElse(exp);
               //equiv: goto TAILCALL
               continue TAILCALL;
+        }else if(isLambda(exp)){
+          return SchemeObject.makeCompoundProc(lambdaParams(exp), lambdaBody(exp), env);
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);
           arguments = listOfValues(operands(exp), env);
-          return procedure.getNativeProc().call(arguments);
+          if(procedure.isNativeProc()){
+            return procedure.getNativeProc().call(arguments);
+          }else if(procedure.isCompoundProc()){
+            env = extendEnvironment(procedure.getCompoundProcParams(),
+                                    arguments,
+                                    procedure.getCompoundProcEnv());
+            exp = procedure.getCompoundProcBody();
+            while(!isLastExp(exp)){
+              eval(firstExp(exp), env);
+              exp = restExps(exp);
+            }
+            exp = firstExp(exp);
+            continue TAILCALL;
+          }else{
+            System.err.println("Unsupported procedure type");
+            System.exit(0);
+          }
         }else{
           System.err.println("Unsupported expression type");
           System.exit(0);
