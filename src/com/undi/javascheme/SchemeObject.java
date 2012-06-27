@@ -95,7 +95,8 @@ public class SchemeObject {
       return EmptyList;
     }
     SchemeObject obj = new SchemeObject();
-    obj.initPair();
+    obj.mType = type.PAIR;
+    obj.mData = new SchemeObject[2];
     obj.setCar(car);
     obj.setCdr(cdr);
     return obj;
@@ -103,10 +104,7 @@ public class SchemeObject {
   public boolean isPair(){
     return this.mType == type.PAIR;
   }
-  private void initPair(){
-    this.mType = type.PAIR;
-    this.mData = new SchemeObject[2];
-  }
+
   public void setCar(SchemeObject car){
     SchemeObject[] data = (SchemeObject[])this.mData;
     data[0] = car;
