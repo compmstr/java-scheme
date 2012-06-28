@@ -369,6 +369,8 @@ public class SchemeObject {
       tempString.append("()");
       break;
     case COMPOUND_PROC:
+      tempString.append("#<interpreted procedure>");
+      break;
     case NATIVE_PROC:
       tempString.append("#<native procedure>");
       break;

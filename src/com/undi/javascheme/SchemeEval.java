@@ -290,16 +290,6 @@ public class SchemeEval {
     }
   }
   public SchemeObject makeApply(SchemeObject operation, SchemeObject operands, SchemeObject env){
-    /*return SchemeObject.cons(operation, 
-        SchemeObject.cons(operands, SchemeObject.EmptyList));*/
-    //TODO: this doesn't work (probably needs to be recursive)
-    /*SchemeObject curOperand = eval(operands.getCar(), env);
-    SchemeObject evaledOps = curOperand;
-    while(!operands.isEmptyList()){
-      operands = operands.getCdr();
-      curOperand = eval(operands.getCar(), env);
-      evaledOps = SchemeObject.cons(evaledOps, curOperand);
-    }*/
     return SchemeObject.cons(operation, operands);
   }
   
