@@ -269,4 +269,12 @@ public class SchemeNatives {
       }
     }
   });
+  public static final SchemeObject concat = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject a = SchemeObject.car(args);
+      SchemeObject b = SchemeObject.cadr(args);
+      return SchemeObject.concatList(a, b);
+    }
+  });
 }

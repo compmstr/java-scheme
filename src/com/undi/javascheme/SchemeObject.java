@@ -24,6 +24,7 @@ public class SchemeObject {
   public static final SchemeObject LoadSymbol = SchemeObject.makeSymbol("load");
   public static final SchemeObject OrSymbol = SchemeObject.makeSymbol("or");
   public static final SchemeObject AndSymbol = SchemeObject.makeSymbol("and");
+  public static final SchemeObject ApplySymbol = SchemeObject.makeSymbol("apply");
   
   
   //TODO: This doesn't work
@@ -162,6 +163,14 @@ public class SchemeObject {
   }
   public static SchemeObject cons(SchemeObject car, SchemeObject cdr){
     return SchemeObject.makePair(car, cdr);
+  }
+  
+  public static SchemeObject concatList(SchemeObject list, SchemeObject item){
+    if(list.isEmptyList()){
+      return item;
+    }else{
+      return cons(list.getCar(), concatList(list.getCdr(), item));
+    }
   }
   
   public static boolean isFalse(SchemeObject obj){

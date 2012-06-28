@@ -33,3 +33,9 @@
 
 (define (odd? x)
   (not (even? x)))
+
+(define (myconcat lst item)
+  (if (eq? '() lst)
+    item
+    (cons (car lst) 
+          (myconcat (cdr lst) item))))

@@ -68,7 +68,8 @@ public class SchemeEval {
     addNativeProc("char->number", SchemeNatives.characterToNumber); 
     addNativeProc("number->char", SchemeNatives.numberToCharacter); 
     addNativeProc("eq?", SchemeNatives.eqp);
-    addNativeProc("print", SchemeNatives.print); 
+    addNativeProc("print", SchemeNatives.print);
+    addNativeProc("concat", SchemeNatives.concat); 
     
     addNativeProc("globalEnv", globalEnv);
     
@@ -263,6 +264,43 @@ public class SchemeEval {
   
   public SchemeObject condToIf(SchemeObject exp){
     return expandClauses(condClauses(exp));
+  }
+  
+  //Apply form
+  public boolean isApply(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.ApplySymbol);
+  }
+  public SchemeObject applyOperation(SchemeObject exp){
+    return SchemeObject.cadr(exp);
+  }
+  
+  public SchemeObject applyOperands(SchemeObject exp, SchemeObject env){
+    return prepApplyOperands(SchemeObject.cddr(exp), env);
+  }
+  
+  public SchemeObject prepApplyOperands(SchemeObject exp, SchemeObject env){
+    if(exp.isEmptyList()){
+      return exp;
+    }
+    SchemeObject carObject = eval(exp.getCar(), env);
+    if(carObject.isPair()){
+      return SchemeObject.concatList(carObject, prepApplyOperands(exp.getCdr(), env));
+    }else{
+      return SchemeObject.cons(carObject, prepApplyOperands(exp.getCdr(), env));
+    }
+  }
+  public SchemeObject makeApply(SchemeObject operation, SchemeObject operands, SchemeObject env){
+    /*return SchemeObject.cons(operation, 
+        SchemeObject.cons(operands, SchemeObject.EmptyList));*/
+    //TODO: this doesn't work (probably needs to be recursive)
+    /*SchemeObject curOperand = eval(operands.getCar(), env);
+    SchemeObject evaledOps = curOperand;
+    while(!operands.isEmptyList()){
+      operands = operands.getCdr();
+      curOperand = eval(operands.getCar(), env);
+      evaledOps = SchemeObject.cons(evaledOps, curOperand);
+    }*/
+    return SchemeObject.cons(operation, operands);
   }
   
   //Application (procedure call)
@@ -561,6 +599,9 @@ public class SchemeEval {
           continue TAILCALL;
         }else if(isLet(exp)){
           exp = letToApplication(exp);
+          continue TAILCALL;
+        }else if(isApply(exp)){
+          exp = makeApply(applyOperation(exp), applyOperands(exp, env), env);
           continue TAILCALL;
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);
