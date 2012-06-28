@@ -43,10 +43,13 @@ public class SchemeEval {
     addNativeProc("*", SchemeNatives.mult); 
     addNativeProc("quotient", SchemeNatives.quotient); 
     addNativeProc("/", SchemeNatives.div); 
-    addNativeProc("remainder", SchemeNatives.mod); 
+    addNativeProc("remainder", SchemeNatives.mod);
+    addNativeProc("sqrt", SchemeNatives.sqrt); 
     addNativeProc("=", SchemeNatives.numEql); 
     addNativeProc(">", SchemeNatives.greaterThan); 
     addNativeProc("<", SchemeNatives.lessThan); 
+    addNativeProc(">=", SchemeNatives.greaterThanEqual); 
+    addNativeProc("<=", SchemeNatives.lessThanEqual); 
     addNativeProc("cons", SchemeNatives.cons); 
     addNativeProc("car", SchemeNatives.car); 
     addNativeProc("cdr", SchemeNatives.cdr); 
