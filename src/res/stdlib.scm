@@ -25,8 +25,13 @@
 
 (define (range-recur cur target)
   (if (= cur target)
-    (list target)
+    '()
     (cons cur (range-recur (inc cur) target))))
+
+(define (range2 start len)
+  (map
+    (lambda x (+ start x))
+    (range len)))
 
 (define (map func lst)
   (if (empty? (cdr lst))

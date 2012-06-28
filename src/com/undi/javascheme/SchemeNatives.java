@@ -305,7 +305,8 @@ public class SchemeNatives {
       SchemeObject carObj = args.getCar();
       System.out.print(carObj);
       if(args.getCdr().isEmptyList()){
-        return SchemeObject.EmptyList;
+        System.out.print('\n');
+        return SchemeObject.OkSymbol;
       }else{
         return call(args.getCdr());
       }

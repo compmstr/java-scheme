@@ -193,7 +193,7 @@ public class SchemeObject {
     if(cdrObj.mType == type.PAIR){
       tempString.append(' ');
       cdrObj.writePair(tempString);
-    }else if(cdrObj.mType == type.EMPTY_LIST){
+    }else if(cdrObj.isEmptyList()){
       return;
     }else{
       tempString.append(" . ");
