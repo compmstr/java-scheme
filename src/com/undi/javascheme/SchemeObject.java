@@ -22,6 +22,8 @@ public class SchemeObject {
   public static final SchemeObject ElseSymbol = SchemeObject.makeSymbol("else");
   public static final SchemeObject LetSymbol = SchemeObject.makeSymbol("let");
   public static final SchemeObject LoadSymbol = SchemeObject.makeSymbol("load");
+  public static final SchemeObject OrSymbol = SchemeObject.makeSymbol("or");
+  public static final SchemeObject AndSymbol = SchemeObject.makeSymbol("and");
   
   
   //TODO: This doesn't work

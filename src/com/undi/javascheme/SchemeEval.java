@@ -31,6 +31,11 @@ public class SchemeEval {
   });
   
   public SchemeEval(){
+    //load the stdlib by default
+    this(true);
+  }
+  
+  public SchemeEval(boolean loadStdlib){
     this.GlobalEnvironment = this.setupEnvironment();
     //Set up native procedures
     addNativeProc("+", SchemeNatives.add); 
@@ -68,9 +73,11 @@ public class SchemeEval {
     addNativeProc("globalEnv", globalEnv);
     
     //Load the standard lib
-    System.out.println("Reading stdlib...");
-    this.loadStdLib(GlobalEnvironment);
-    System.out.println("Done.");
+    if(loadStdlib){
+      System.out.println("Reading stdlib...");
+      this.loadStdLib(GlobalEnvironment);
+      System.out.println("Done.");
+    }
   }
   
   public boolean isTaggedList(SchemeObject obj, SchemeObject tag){
@@ -187,6 +194,22 @@ public class SchemeEval {
     }else{
       return SchemeObject.cadddr(exp);
     }
+  }
+  
+  //And stuff
+  public boolean isAnd(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.AndSymbol);
+  }
+  public SchemeObject andPredicates(SchemeObject exp){
+    return exp.getCdr();
+  }
+  
+  //Or stuff
+  public boolean isOr(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.OrSymbol);
+  }
+  public SchemeObject orPredicates(SchemeObject exp){
+    return exp.getCdr();
   }
   
   //Cond stuff
@@ -499,6 +522,28 @@ public class SchemeEval {
                 ifElse(exp);
               //equiv: goto TAILCALL
               continue TAILCALL;
+        }else if(isAnd(exp)){
+          exp = andPredicates(exp);
+          while(!isLastExp(exp)){
+            if(SchemeObject.isFalse(eval(firstExp(exp), env))){
+              exp = SchemeObject.False;
+              continue TAILCALL;
+            }
+            exp = restExps(exp);
+          }
+          exp = firstExp(exp);
+          continue TAILCALL;
+        }else if(isOr(exp)){
+          exp = andPredicates(exp);
+          while(!isLastExp(exp)){
+            if(SchemeObject.isTrue(eval(firstExp(exp), env))){
+              exp = SchemeObject.True;
+              continue TAILCALL;
+            }
+            exp = restExps(exp);
+          }
+          exp = firstExp(exp);
+          continue TAILCALL;
         }else if(isLambda(exp)){
           return SchemeObject.makeCompoundProc(lambdaParams(exp), lambdaBody(exp), env);
         }else if(isBegin(exp)){
