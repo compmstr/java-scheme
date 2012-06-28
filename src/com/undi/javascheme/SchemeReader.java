@@ -7,8 +7,6 @@ import java.io.PushbackInputStream;
 
 public class SchemeReader {
   private PushbackInputStream mBufIn;
-  //read() returns -1 on end of stream
-  private static final int EOF = -1;
   //Allow up to 10 characters to be pushed back into the buffer
   private static final int PUSHBACK_SIZE = 10;
   private ReadFunc[] readFuncs;
@@ -53,10 +51,15 @@ public class SchemeReader {
     
   }
   
+  public boolean isEOF(char c){
+    //the stream returns -1 at end of stream, then 255 for every char after that
+    return (((short)c == -1) || ((short)c == 255));
+  }
+  
   public boolean isDelimiter(int c){
     return Character.isWhitespace(c) ||
                       c == '(' || c == ')' ||
-                      c == '"' || c == ';';
+                      c == '"' || c == ';' || isEOF((char)c);
   }
   
   /**
@@ -121,11 +124,11 @@ public class SchemeReader {
   
   public void eatWhitespace(){
     int c;
-    while((c = getc()) != EOF){
+    while(!isEOF((char)(c = getc()))){
       if(Character.isWhitespace((char)c)){
         continue;
       }else if(c == ';'){
-        while(((c = getc()) != EOF) && (c != '\n'));
+        while((!isEOF((char)(c = getc()))) && (c != '\n'));
         continue;
       }
       ungetc(c);
@@ -219,11 +222,12 @@ getString:
       System.exit(1);
     }
     c = getc();
-    switch(c){
-    case EOF:
+    if(isEOF((char)c)){
       System.err.println("Incomplete Character Literal");
       System.exit(1);
       return null;
+    }
+    switch(c){
     case 's':
       if(peek() == 'p'){
         eatExpectedString("pace");
@@ -313,6 +317,10 @@ getString:
     }
   }
   
+  /**
+   * 
+   * @return the object read, or null if end of file is reached
+   */
   public SchemeObject read(){
     boolean quoted = false;
     eatWhitespace();
@@ -321,6 +329,10 @@ getString:
       quoted = true;
     }
     SchemeObject.type nextType = nextType();
+    if(nextType == null){
+      //End of file reached, return null
+      return null;
+    }
     if(this.readFuncs[nextType.ordinal()] != null){
       if(quoted){
         return SchemeObject.cons(SchemeObject.QuoteSymbol, SchemeObject.cons(this.readFuncs[nextType.ordinal()].read(), SchemeObject.EmptyList));
@@ -336,13 +348,16 @@ getString:
   
   /**
    * Determines what the next SchemeObject type will be from the start of the stream
-   * @return
+   * @return the next type of objec to read, or null if end of file
    */
   private SchemeObject.type nextType(){
     SchemeObject.type retType = null;
     eatWhitespace();
     //char[] c = readToken().toCharArray();
     char c = (char)getc();
+    if(isEOF(c)){
+      return null;
+    }
     char next_char;
     if(c == '"'){
        retType = SchemeObject.type.STRING;

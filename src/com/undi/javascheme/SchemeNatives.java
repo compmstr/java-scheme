@@ -252,7 +252,21 @@ public class SchemeNatives {
   public static final SchemeObject eqp = SchemeObject.makeNativeProc(new nativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      return (args.valueEqual(args.getCar())) ? SchemeObject.True : SchemeObject.False;
+      SchemeObject a = SchemeObject.car(args);
+      SchemeObject b = SchemeObject.cadr(args);
+      return (a.valueEqual(b)) ? SchemeObject.True : SchemeObject.False;
+    }
+  });
+  public static final SchemeObject print = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject carObj = args.getCar();
+      System.out.print(carObj);
+      if(args.getCdr().isEmptyList()){
+        return SchemeObject.EmptyList;
+      }else{
+        return call(args.getCdr());
+      }
     }
   });
 }

@@ -1,5 +1,9 @@
 package com.undi.javascheme;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 public class SchemeEval {
   
   private static final SchemeObject EmptyEnvironment = SchemeObject.EmptyList;
@@ -17,6 +21,13 @@ public class SchemeEval {
                     proc,
                     this.GlobalEnvironment);
   }
+  
+  private SchemeObject globalEnv = SchemeObject.makeNativeProc(new SchemeNatives.nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      return getGlobalEnv();
+    }   
+  });
   
   public SchemeEval(){
     this.GlobalEnvironment = this.setupEnvironment();
@@ -50,7 +61,10 @@ public class SchemeEval {
     addNativeProc("string->symbol", SchemeNatives.stringToSymbol); 
     addNativeProc("char->number", SchemeNatives.characterToNumber); 
     addNativeProc("number->char", SchemeNatives.numberToCharacter); 
-    addNativeProc("eq?", SchemeNatives.eqp); 
+    addNativeProc("eq?", SchemeNatives.eqp);
+    addNativeProc("print", SchemeNatives.print); 
+    
+    addNativeProc("globalEnv", globalEnv);
   }
   
   public boolean isTaggedList(SchemeObject obj, SchemeObject tag){
@@ -223,6 +237,9 @@ public class SchemeEval {
   }
   
   //Application (procedure call)
+  public SchemeObject makeApplication(SchemeObject operator, SchemeObject operands){
+    return SchemeObject.cons(operator, operands);
+  }
   public boolean isApplication(SchemeObject exp){
     return exp.isPair();
   }
@@ -250,6 +267,86 @@ public class SchemeEval {
       return SchemeObject.cons(eval(firstOperand(exps), env),
                                 listOfValues(restOperands(exps), env));
     }
+  }
+  
+  //Let stuff
+  public boolean isLet(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.LetSymbol);
+  }
+  //(let <((a 5))> ...)
+  public SchemeObject letBindings(SchemeObject exp){
+    return SchemeObject.cadr(exp);
+  }
+  //(let ((a 5)) <...>)
+  public SchemeObject letBody(SchemeObject exp){
+    return SchemeObject.cddr(exp);
+  }
+  //(let ((<a> 5)) ...)
+  public SchemeObject bindingParameter(SchemeObject binding){
+    return SchemeObject.car(binding);
+  }
+  public SchemeObject bindingArgument(SchemeObject binding){
+    return SchemeObject.cadr(binding);
+  }
+  /**
+   * Generate a list of all the bindings from this set of let bindings
+   * @param bindings
+   * @return
+   */
+  public SchemeObject bindingsParameters(SchemeObject bindings){
+    return bindings.isEmptyList()?
+          SchemeObject.EmptyList :
+            SchemeObject.cons(bindingParameter(bindings.getCar()),
+                  bindingsParameters(bindings.getCdr()));
+  }
+  public SchemeObject bindingsArguments(SchemeObject bindings){
+    return bindings.isEmptyList()?
+          SchemeObject.EmptyList :
+            SchemeObject.cons(bindingArgument(bindings.getCar()),
+                  bindingsArguments(bindings.getCdr()));
+  }
+  
+  public SchemeObject letParameters(SchemeObject exp){
+    return bindingsParameters(letBindings(exp));
+  }
+  public SchemeObject letArguments(SchemeObject exp){
+    return bindingsArguments(letBindings(exp));
+  }
+  
+  public SchemeObject letToApplication(SchemeObject exp){
+    return makeApplication(
+              makeLambda(letParameters(exp), letBody(exp)),
+              letArguments(exp));
+  }
+  
+  //Load
+  public boolean isLoad(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.LoadSymbol);
+  }
+  public SchemeObject loadFile(SchemeObject exp, SchemeObject env){
+      String filename = new String(SchemeObject.cadr(exp).getString());
+      FileInputStream fin = null;
+      try {
+        fin = new FileInputStream(filename);
+      } catch (FileNotFoundException e) {
+        System.err.println("File: " + filename + " not found for load");
+        return SchemeObject.False;
+      }
+      
+      SchemeReader reader = new SchemeReader(fin);
+      SchemeObject obj = reader.read();
+      while(obj != null){
+        eval(obj, env);
+        obj = reader.read();
+      }
+      
+      try {
+        fin.close();
+      } catch (IOException e) {
+        System.err.println("Unable to close file: " + filename);
+      }
+      
+      return SchemeObject.OkSymbol;
   }
   
   //Environment stuff
@@ -383,8 +480,13 @@ public class SchemeEval {
           }
           exp = firstExp(exp);
           continue TAILCALL;
+        }else if(isLoad(exp)){
+          return loadFile(exp, env);
         }else if(isCond(exp)){
           exp = condToIf(exp);
+          continue TAILCALL;
+        }else if(isLet(exp)){
+          exp = letToApplication(exp);
           continue TAILCALL;
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);

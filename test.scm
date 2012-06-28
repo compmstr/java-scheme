@@ -7,14 +7,13 @@
             max-count)))
   (iter 1 1 n))
 
-"(factorial 5):"
-(factorial 5)
+(print "(factorial 5): " (factorial 5) #\newline)
 
 (define (fact x)
   (if (= x 0)
     1
     (* x (fact (- x 1)))))
-(fact 5)
+(print "(fact 5): " (fact 5) #\newline)
 
 (define (range-recur cur target)
   (if (= cur target)
@@ -24,4 +23,9 @@
 (define (range x)
   (range-recur 0 x))
 
-(range 10)
+(print "(range 10): " (range 10) #\newline)
+
+(define (map func lst)
+  (if (eq? (cdr lst) '())
+    (list (func (car lst)))
+    (cons (func (car lst)) (map func (cdr lst)))))

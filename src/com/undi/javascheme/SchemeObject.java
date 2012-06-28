@@ -20,16 +20,25 @@ public class SchemeObject {
   public static final SchemeObject BeginSymbol = SchemeObject.makeSymbol("begin");
   public static final SchemeObject CondSymbol = SchemeObject.makeSymbol("cond");
   public static final SchemeObject ElseSymbol = SchemeObject.makeSymbol("else");
+  public static final SchemeObject LetSymbol = SchemeObject.makeSymbol("let");
+  public static final SchemeObject LoadSymbol = SchemeObject.makeSymbol("load");
   
   
   //TODO: This doesn't work
   public boolean valueEqual(SchemeObject other){
-    if(other.mType == this.mType){
-      if(other.mData == this.mData){
-        return true;
-      }
+    if(other.mType != this.mType){
+      return false;
     }
-    return false;
+    switch(this.mType){
+    case NUMBER:
+      return this.getNumber() == other.getNumber();
+    case STRING:
+      return (new String(this.getString())).equals(new String(other.getString()));
+    case CHARACTER:
+      return this.getCharacter() == other.getCharacter();
+    default:
+        return this.mData == other.mData;
+    }
   }
   
   //Compound Proc

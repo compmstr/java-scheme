@@ -20,8 +20,8 @@ public class JavaScheme {
     System.out.println("Welcome to java-scheme, press Ctrl-C to exit");
     SchemeReader reader = new SchemeReader(System.in);
     SchemeEval evaluator = new SchemeEval();
-    SchemeReader stringReader = SchemeReader.fromString("(define (double x) (* x 2))");
-    System.out.println(evaluator.eval(stringReader.read(), evaluator.getGlobalEnv()));
+    //SchemeReader stringReader = SchemeReader.fromString("(define (double x) (* x 2))");
+    //System.out.println(evaluator.eval(stringReader.read(), evaluator.getGlobalEnv()));
     //REPL loop
     while(true){
       System.out.print("> ");
