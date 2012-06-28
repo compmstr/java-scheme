@@ -66,6 +66,11 @@ public class SchemeEval {
     addNativeProc("print", SchemeNatives.print); 
     
     addNativeProc("globalEnv", globalEnv);
+    
+    //Load the standard lib
+    System.out.println("Reading stdlib...");
+    this.loadStdLib(GlobalEnvironment);
+    System.out.println("Done.");
   }
   
   public boolean isTaggedList(SchemeObject obj, SchemeObject tag){
