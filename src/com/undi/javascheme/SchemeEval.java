@@ -3,6 +3,7 @@ package com.undi.javascheme;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class SchemeEval {
   
@@ -323,6 +324,12 @@ public class SchemeEval {
   public boolean isLoad(SchemeObject exp){
     return isTaggedList(exp, SchemeObject.LoadSymbol);
   }
+  /**
+   * 
+   * @param exp - String filename to load
+   * @param env - Environment to load into
+   * @return
+   */
   public SchemeObject loadFile(SchemeObject exp, SchemeObject env){
       String filename = new String(SchemeObject.cadr(exp).getString());
       FileInputStream fin = null;
@@ -333,12 +340,7 @@ public class SchemeEval {
         return SchemeObject.False;
       }
       
-      SchemeReader reader = new SchemeReader(fin);
-      SchemeObject obj = reader.read();
-      while(obj != null){
-        eval(obj, env);
-        obj = reader.read();
-      }
+      loadStream(fin, env);
       
       try {
         fin.close();
@@ -347,6 +349,28 @@ public class SchemeEval {
       }
       
       return SchemeObject.OkSymbol;
+  }
+  
+  public SchemeObject loadStdLib(SchemeObject env){
+    InputStream stdLibStream = SchemeReader.class.getResourceAsStream("/res/stdlib.scm");
+    loadStream(stdLibStream, env);
+    return SchemeObject.OkSymbol;
+  }
+  
+  /**
+   * Loads code and evaluates it from a stream
+   * @param in - stream to read from
+   * @param env - environment to load into
+   * @return
+   */
+  public SchemeObject loadStream(InputStream in, SchemeObject env){
+    SchemeReader reader = new SchemeReader(in);
+    SchemeObject obj = reader.read();
+    while(obj != null){
+      eval(obj, env);
+      obj = reader.read();
+    }
+    return SchemeObject.OkSymbol;
   }
   
   //Environment stuff
