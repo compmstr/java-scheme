@@ -88,6 +88,10 @@ public class SchemeEval {
     addNativeProc("hashmap-set!", SchemeNatives.hashMapSet);
     addNativeProc("hashmap-get", SchemeNatives.hashMapGet);
     addNativeProc("hashmap-del!", SchemeNatives.hashMapDel);
+    addNativeProc("hashmap-keys", SchemeNatives.hashMapKeys);
+    addNativeProc("hashmap-vals", SchemeNatives.hashMapVals);
+    addNativeProc("hashmap-key?", SchemeNatives.hashMapContainsKey);
+    addNativeProc("hashmap-val?", SchemeNatives.hashMapContainsVal);
     
     addNativeProc("globalEnv", globalEnv);
     

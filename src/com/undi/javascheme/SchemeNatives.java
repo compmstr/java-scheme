@@ -1,5 +1,8 @@
 package com.undi.javascheme;
 
+import java.util.Collection;
+import java.util.Set;
+
 
 public class SchemeNatives {
   //Native Procedures:
@@ -442,6 +445,50 @@ public class SchemeNatives {
       SchemeObject key = SchemeObject.cadr(args);
       map.getHashMap().remove(key);
       return map;
+    }
+  });
+  public static final SchemeObject hashMapKeys = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      Set<SchemeObject> keys = map.getHashMap().keySet();
+      SchemeObject keyVector = SchemeObject.makeVector(SchemeObject.EmptyList);
+      
+      for(SchemeObject key : keys){
+        keyVector.addToVector(key);
+      }
+      
+      return keyVector;
+    }
+  });
+  public static final SchemeObject hashMapVals = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      Collection<SchemeObject> vals = map.getHashMap().values();
+      SchemeObject valVector = SchemeObject.makeVector(SchemeObject.EmptyList);
+      
+      for(SchemeObject val : vals){
+        valVector.addToVector(val);
+      }
+      
+      return valVector;
+    }
+  });
+  public static final SchemeObject hashMapContainsKey = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      SchemeObject key = SchemeObject.cadr(args);
+      return map.getHashMap().containsKey(key) ? SchemeObject.True : SchemeObject.False;
+    }
+  });
+  public static final SchemeObject hashMapContainsVal = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      SchemeObject val = SchemeObject.cadr(args);
+      return map.getHashMap().containsValue(val) ? SchemeObject.True : SchemeObject.False;
     }
   });
   
