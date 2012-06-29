@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 public class SchemeEval {
   
@@ -454,7 +455,15 @@ public class SchemeEval {
     return SchemeObject.car(env);
   }
   public SchemeObject makeFrame(SchemeObject vars, SchemeObject vals){
-    return SchemeObject.cons(vars, vals);
+    //return SchemeObject.cons(vars, vals);
+    SchemeObject bindings = SchemeObject.EmptyList;
+    while(!vars.isEmptyList()){
+      bindings = SchemeObject.cons(vars.getCar(), 
+            SchemeObject.cons(vals.getCar(), bindings));
+      vars = vars.getCdr();
+      vals = vals.getCdr();
+    }
+    return SchemeObject.makeHashMap(bindings);
   }
   
   public SchemeObject frameVars(SchemeObject frame){
@@ -465,8 +474,9 @@ public class SchemeEval {
   }
   
   public void addBindingToFrame(SchemeObject var, SchemeObject val, SchemeObject frame){
-    frame.setCar(SchemeObject.cons(var, frame.getCar()));
-    frame.setCdr(SchemeObject.cons(val, frame.getCdr()));
+    //frame.setCar(SchemeObject.cons(var, frame.getCar()));
+    //frame.setCdr(SchemeObject.cons(val, frame.getCdr()));
+    frame.getHashMap().put(var, val);
   }
   
   public SchemeObject extendEnvironment(SchemeObject vars, SchemeObject vals,
@@ -475,19 +485,16 @@ public class SchemeEval {
   }
   
   public SchemeObject lookupVariableValue(SchemeObject var, SchemeObject env){
-    SchemeObject frame;
-    SchemeObject vars;
-    SchemeObject vals;
+    HashMap<SchemeObject, SchemeObject> frameMap;
+    SchemeObject result = null;
     while(!env.isEmptyList()){
-      frame = firstFrame(env);
-      vars = frameVars(frame);
-      vals = frameVals(frame);
-      while(!vars.isEmptyList()){
-        if(var == vars.getCar()){
-          return vals.getCar();
-        }
-        vars = vars.getCdr();
-        vals = vals.getCdr();
+      frameMap = firstFrame(env).getHashMap();
+      /*if(frameMap.containsKey(var)){
+        return frameMap.get(var);
+      }*/
+      result = frameMap.get(var);
+      if(result != null){
+        return result;
       }
       env = enclosingEnvironment(env);
     }
@@ -497,20 +504,12 @@ public class SchemeEval {
   }
   
   public void setVariableValue(SchemeObject var, SchemeObject val, SchemeObject env){
-    SchemeObject frame;
-    SchemeObject vars;
-    SchemeObject vals;
+    HashMap<SchemeObject, SchemeObject> frameMap;
     while(!env.isEmptyList()){
-      frame = firstFrame(env);
-      vars = frameVars(frame);
-      vals = frameVals(frame);
-      while(!vars.isEmptyList()){
-        if(var == vars.getCar()){
-          vals.setCar(val);
-          return;
-        }
-        vars = vars.getCdr();
-        vals = vals.getCdr();
+      frameMap = firstFrame(env).getHashMap();
+      if(frameMap.containsKey(var)){
+        frameMap.put(var, val);
+        return;
       }
       env = enclosingEnvironment(env);
     }
@@ -520,20 +519,7 @@ public class SchemeEval {
   
   public void defineVariable(SchemeObject var, SchemeObject val, SchemeObject env){
     SchemeObject frame;
-    SchemeObject vars;
-    SchemeObject vals;
-    
     frame = firstFrame(env);
-    vars = frameVars(frame);
-    vals = frameVals(frame);
-    while(!vars.isEmptyList()){
-      if(var == vars.getCar()){
-        vals.setCar(val);
-        return;
-      }
-      vars = vars.getCdr();
-      vals = vals.getCdr();
-    }
     addBindingToFrame(var, val, frame);
   }
   

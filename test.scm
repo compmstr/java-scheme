@@ -17,3 +17,10 @@
   (make-hashmap #\a "a" #\b "b"))
 (print "Charmap: " charmap)
 (print (hashmap-set! charmap #\a "c"))
+
+(define (bigcalc n)
+  (let ((biglist (range2 1 n)))
+    (let ((bigbiglist (concat biglist biglist)))
+      (filter even?
+        (map (lambda x (sqrt x))
+          bigbiglist)))))
