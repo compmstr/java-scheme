@@ -454,6 +454,35 @@ public class SchemeEval {
     return SchemeObject.OkSymbol;
   }
   
+  //While loops
+  public boolean isWhile(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.WhileSymbol);
+  }
+  public SchemeObject whilePredicate(SchemeObject exp){
+    return SchemeObject.cadr(exp);
+  }
+  
+  public SchemeObject whileBody(SchemeObject exp){
+    return SchemeObject.cddr(exp);
+  }
+  
+  public SchemeObject doWhile(SchemeObject exp, SchemeObject env){
+    SchemeObject predicate = whilePredicate(exp);
+    SchemeObject body = whileBody(exp);
+    
+    SchemeObject result = SchemeObject.EmptyList;
+    while(SchemeObject.isTrue(eval(predicate, env))){
+      SchemeObject exps = body;
+      while(!isLastExp(exps)){
+        eval(firstExp(exps), env);
+        exps = exps.getCdr();
+      }
+      result = eval(firstExp(exps), env);
+    }
+    
+    return result;
+  }
+  
   //Environment stuff
   public SchemeObject enclosingEnvironment(SchemeObject env){
     return SchemeObject.cdr(env);
@@ -584,6 +613,8 @@ public class SchemeEval {
           continue TAILCALL;
         }else if(isLambda(exp)){
           return SchemeObject.makeCompoundProc(lambdaParams(exp), lambdaBody(exp), env);
+        }else if(isWhile(exp)){
+          return doWhile(exp, env);
         }else if(isBegin(exp)){
           exp = beginActions(exp);
           while(!isLastExp(exp)){
