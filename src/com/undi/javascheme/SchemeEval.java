@@ -72,7 +72,16 @@ public class SchemeEval {
     addNativeProc("number->char", SchemeNatives.numberToCharacter); 
     addNativeProc("eq?", SchemeNatives.eqp);
     addNativeProc("print", SchemeNatives.print);
-    addNativeProc("concat", SchemeNatives.concat); 
+    addNativeProc("concat", SchemeNatives.concat);
+    
+    addNativeProc("vector", SchemeNatives.vector);
+    addNativeProc("make-vector", SchemeNatives.makeVector);
+    addNativeProc("vector-ref", SchemeNatives.vectorRef);
+    addNativeProc("vector-set!", SchemeNatives.vectorSet);
+    addNativeProc("vector-fill!", SchemeNatives.vectorFill);
+    addNativeProc("vector-length", SchemeNatives.vectorLength);
+    addNativeProc("vector->list", SchemeNatives.vectorToList);
+    addNativeProc("list->vector", SchemeNatives.listToVector);
     
     addNativeProc("globalEnv", globalEnv);
     

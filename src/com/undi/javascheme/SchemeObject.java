@@ -1,9 +1,11 @@
 package com.undi.javascheme;
 
+import java.util.Vector;
+
 //This class works almost like a union
 public class SchemeObject {
   public static enum type {NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST,
-                            NATIVE_PROC, COMPOUND_PROC, NUM_TYPES};
+                            NATIVE_PROC, COMPOUND_PROC, VECTOR, NUM_TYPES};
   public type getType(){return this.mType;}
   
   public static final SchemeObject True = SchemeObject.createBoolean(true);
@@ -332,6 +334,39 @@ public class SchemeObject {
     this.mData = value;
   }
   
+  //Vectors
+  public static SchemeObject makeVector(SchemeObject contents){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.VECTOR;
+    
+    obj.mData = new Vector<SchemeObject>();
+    while(!contents.isEmptyList()){
+      obj.addToVector(contents.getCar());
+      contents = contents.getCdr();
+    }
+    
+    return obj;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public Vector<SchemeObject> getVector(){
+    if(!this.isVector()){
+      System.err.println("Object Isn't a Vector!");
+      System.exit(1);
+    }
+    return (Vector<SchemeObject>) this.mData;
+  }
+  
+  public SchemeObject addToVector(SchemeObject obj){
+    //If it's a vector, we know it has a vector as data
+    Vector<SchemeObject> myVec = this.getVector();
+    myVec.add(obj);
+    return OkSymbol;
+  }
+  public boolean isVector(){
+    return this.mType == type.VECTOR;
+  }
+  
   /**
    * Returns the object as a string
    * **Writer in repl**
@@ -373,6 +408,18 @@ public class SchemeObject {
       break;
     case NATIVE_PROC:
       tempString.append("#<native procedure>");
+      break;
+    case VECTOR:
+      tempString.append("#(");
+      Vector<SchemeObject> data = this.getVector();
+      int elts = data.size();
+      for(int i = 0; i < elts; i++){
+        tempString.append(data.get(i));
+        if(elts - i > 1){
+          tempString.append(' ');
+        }
+      }
+      tempString.append(")");
       break;
     }
     

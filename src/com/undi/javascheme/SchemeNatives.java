@@ -1,5 +1,6 @@
 package com.undi.javascheme;
 
+
 public class SchemeNatives {
   //Native Procedures:
   
@@ -318,6 +319,90 @@ public class SchemeNatives {
       SchemeObject a = SchemeObject.car(args);
       SchemeObject b = SchemeObject.cadr(args);
       return SchemeObject.concatList(a, b);
+    }
+  });
+  
+  public static final SchemeObject vector = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      return SchemeObject.makeVector(args);
+    }
+  });
+  
+  public static final SchemeObject vectorRef = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      int index = (int)SchemeObject.cadr(args).getNumber();
+      return vector.getVector().get(index);
+    }
+  });
+  
+  public static final SchemeObject vectorSet = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      int index = (int)SchemeObject.cadr(args).getNumber();
+      SchemeObject value = SchemeObject.caddr(args);
+      vector.getVector().set(index, value);
+      return vector;
+    }
+  });
+  
+  public static final SchemeObject vectorFill = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      SchemeObject value = SchemeObject.cadr(args);
+      for(int i = 0; i < vector.getVector().size(); i++){
+        vector.getVector().set(i, value);
+      }
+      return vector;
+    }
+  });
+  
+  public static final SchemeObject vectorLength = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      return SchemeObject.makeNumber(vector.getVector().size());
+    }
+  });
+  
+  public static final SchemeObject vectorToList = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      SchemeObject list = SchemeObject.EmptyList;
+      for(int i = vector.getVector().size() - 1; i >= 0; i--){
+        list = SchemeObject.cons(vector.getVector().get(i), list);
+      }
+      return list;
+    }
+  });
+  
+  public static final SchemeObject listToVector = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject list = SchemeObject.car(args);
+      SchemeObject vector = SchemeObject.makeVector(SchemeObject.EmptyList);
+      while(!list.isEmptyList()){
+        vector.addToVector(list.getCar());
+        list = list.getCdr();
+      }
+      return vector;
+    }
+  });
+  
+  public static final SchemeObject makeVector = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject list = SchemeObject.EmptyList;
+      long count = (long)SchemeObject.car(args).getNumber();
+      for(int i = 0; i < count; i++){
+        list = SchemeObject.cons(SchemeObject.cadr(args), list);
+      }
+      return SchemeObject.makeVector(list);
     }
   });
 }
