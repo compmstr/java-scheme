@@ -83,6 +83,11 @@ public class SchemeEval {
     addNativeProc("vector->list", SchemeNatives.vectorToList);
     addNativeProc("list->vector", SchemeNatives.listToVector);
     
+    addNativeProc("make-hashmap", SchemeNatives.makeHashMap);
+    addNativeProc("hashmap-set!", SchemeNatives.hashMapSet);
+    addNativeProc("hashmap-get", SchemeNatives.hashMapGet);
+    addNativeProc("hashmap-del!", SchemeNatives.hashMapDel);
+    
     addNativeProc("globalEnv", globalEnv);
     
     //Load the standard lib

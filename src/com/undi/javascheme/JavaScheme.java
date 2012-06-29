@@ -20,6 +20,15 @@ public class JavaScheme {
     System.out.println("Welcome to java-scheme, press Ctrl-C to exit");
     SchemeReader reader = new SchemeReader(System.in);
     SchemeEval evaluator = new SchemeEval();
+    
+    /*System.out.println("Empty list: " + SchemeObject.EmptyList.hashCode());
+    System.out.println("OK Symbol: " + SchemeObject.OkSymbol.hashCode());
+    System.out.println("Lambda Symbol: " + SchemeObject.LambdaSymbol.hashCode());
+    SchemeObject num1 = SchemeObject.makeNumber(2);
+    SchemeObject num2 = SchemeObject.makeNumber(2);
+    System.out.println("2: " + SchemeObject.makeNumber(2).hashCode());
+    System.out.println("2 (redux): " + SchemeObject.makeNumber(2).hashCode());
+    System.out.println("num1.equals(num2): " + (num1.equals(num2)));*/
     //SchemeReader stringReader = SchemeReader.fromString("(define (double x) (* x 2))");
     //System.out.println(evaluator.eval(stringReader.read(), evaluator.getGlobalEnv()));
     //REPL loop

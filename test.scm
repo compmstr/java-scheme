@@ -1,31 +1,19 @@
-(define (factorial n)
-  (define (iter product counter max-count)
-    (if (> counter max-count)
-      product
-      (iter (+ counter product)
-            (+ counter 1)
-            max-count)))
-  (iter 1 1 n))
+(define nummap 
+  (make-hashmap 1 "one" 2 "two" 3 "three"))
+(print "nummap: " nummap)
+(print (hashmap-set! nummap 2 "four?"))
 
-(print "(factorial 5): " (factorial 5) #\newline)
+(define symbolmap
+  (make-hashmap 'one "one" 'two "two"))
+(print "symbolmap: " symbolmap)
+(print (hashmap-set! symbolmap  'one "three"))
 
-(define (fact x)
-  (if (= x 0)
-    1
-    (* x (fact (- x 1)))))
-(print "(fact 5): " (fact 5) #\newline)
+(define stringmap
+  (make-hashmap "one" 'one "two" 'two))
+(print "stringmap: " stringmap)
+(print (hashmap-set! stringmap "one" "three"))
 
-(define (range-recur cur target)
-  (if (= cur target)
-    (list target)
-    (cons cur (range-recur (+ cur 1) target))))
-
-(define (range x)
-  (range-recur 0 x))
-
-(print "(range 10): " (range 10) #\newline)
-
-(define (map func lst)
-  (if (eq? (cdr lst) '())
-    (list (func (car lst)))
-    (cons (func (car lst)) (map func (cdr lst)))))
+(define charmap
+  (make-hashmap #\a "a" #\b "b"))
+(print "Charmap: " charmap)
+(print (hashmap-set! charmap #\a "c"))

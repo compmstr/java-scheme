@@ -405,4 +405,44 @@ public class SchemeNatives {
       return SchemeObject.makeVector(list);
     }
   });
+  
+  public static final SchemeObject makeHashMap = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      return SchemeObject.makeHashMap(args);
+    }
+  });
+  public static final SchemeObject hashMapGet = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      SchemeObject key = SchemeObject.cadr(args);
+      return map.getHashMap().get(key);
+    }
+  });
+  /**
+   * Sets the hashmap (<function name> map key value)
+   *  Currently works for string, number, symbol, and character key values
+   */
+  public static final SchemeObject hashMapSet = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      SchemeObject key = SchemeObject.cadr(args);
+      SchemeObject value = SchemeObject.caddr(args);
+      map.getHashMap().remove(key);
+      map.getHashMap().put(key, value);
+      return map;
+    }
+  });
+  public static final SchemeObject hashMapDel = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = args.getCar();
+      SchemeObject key = SchemeObject.cadr(args);
+      map.getHashMap().remove(key);
+      return map;
+    }
+  });
+  
 }
