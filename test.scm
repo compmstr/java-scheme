@@ -25,6 +25,13 @@
         (map (lambda x (sqrt x))
           bigbiglist)))))
 
+(define (bigcalc-i n)
+  (let ((biglist (range2-i 1 n)))
+    (let ((bigbiglist (concat biglist biglist)))
+      (filter-i even?
+        (map-i (lambda x (sqrt x))
+          bigbiglist)))))
+
 (define (imp-range start len)
   (let ((end (+ start len)))
     (let ((cur end)
