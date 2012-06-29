@@ -79,7 +79,9 @@ public class SchemeEval {
     addNativeProc("make-vector", SchemeNatives.makeVector);
     addNativeProc("vector-ref", SchemeNatives.vectorRef);
     addNativeProc("vector-set!", SchemeNatives.vectorSet);
+    addNativeProc("vector-add!", SchemeNatives.vectorAdd);
     addNativeProc("vector-fill!", SchemeNatives.vectorFill);
+    addNativeProc("vector-concat", SchemeNatives.vectorConcat);
     addNativeProc("vector-length", SchemeNatives.vectorLength);
     addNativeProc("vector->list", SchemeNatives.vectorToList);
     addNativeProc("list->vector", SchemeNatives.listToVector);
@@ -92,6 +94,7 @@ public class SchemeEval {
     addNativeProc("hashmap-vals", SchemeNatives.hashMapVals);
     addNativeProc("hashmap-key?", SchemeNatives.hashMapContainsKey);
     addNativeProc("hashmap-val?", SchemeNatives.hashMapContainsVal);
+    addNativeProc("hashmap-merge", SchemeNatives.hashMapMerge);
     
     addNativeProc("globalEnv", globalEnv);
     

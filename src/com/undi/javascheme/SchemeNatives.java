@@ -351,6 +351,15 @@ public class SchemeNatives {
       return vector;
     }
   });
+  public static final SchemeObject vectorAdd = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.car(args);
+      SchemeObject value = SchemeObject.cadr(args);
+      vector.getVector().add(value);
+      return vector;
+    }
+  });
   
   public static final SchemeObject vectorFill = SchemeObject.makeNativeProc(new nativeProc(){
     @Override
@@ -406,6 +415,19 @@ public class SchemeNatives {
         list = SchemeObject.cons(SchemeObject.cadr(args), list);
       }
       return SchemeObject.makeVector(list);
+    }
+  });
+  public static final SchemeObject vectorConcat = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject vector = SchemeObject.makeVector(SchemeObject.EmptyList);
+      SchemeObject toAdd;
+      while(!args.isEmptyList()){
+        toAdd = args.getCar();
+        vector.getVector().addAll(toAdd.getVector());
+        args = args.getCdr();
+      }
+      return vector;
     }
   });
   
@@ -489,6 +511,23 @@ public class SchemeNatives {
       SchemeObject map = args.getCar();
       SchemeObject val = SchemeObject.cadr(args);
       return map.getHashMap().containsValue(val) ? SchemeObject.True : SchemeObject.False;
+    }
+  });
+  public static final SchemeObject hashMapMerge = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      SchemeObject map = SchemeObject.makeHashMap(SchemeObject.EmptyList);
+      
+      SchemeObject toMerge;
+      while(!args.isEmptyList()){
+        toMerge = args.getCar();
+        
+        map.getHashMap().putAll(toMerge.getHashMap());
+        
+        args = args.getCdr();
+      }
+      
+      return map;
     }
   });
   
