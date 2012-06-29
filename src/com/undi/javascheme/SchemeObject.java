@@ -20,25 +20,20 @@ public class SchemeObject {
   public static final SchemeObject EmptyList = SchemeObject.createEmptyList();
 
   public static SchemeObject SymbolTable = SchemeObject.EmptyList;
-  public static final SchemeObject QuoteSymbol = SchemeObject
-      .makeSymbol("quote");
-  public static final SchemeObject DefineSymbol = SchemeObject
-      .makeSymbol("define");
+  public static final SchemeObject QuoteSymbol = SchemeObject.makeSymbol("quote");
+  public static final SchemeObject DefineSymbol = SchemeObject.makeSymbol("define");
   public static final SchemeObject SetSymbol = SchemeObject.makeSymbol("set!");
   public static final SchemeObject OkSymbol = SchemeObject.makeSymbol("ok");
   public static final SchemeObject IfSymbol = SchemeObject.makeSymbol("if");
-  public static final SchemeObject LambdaSymbol = SchemeObject
-      .makeSymbol("lambda");
-  public static final SchemeObject BeginSymbol = SchemeObject
-      .makeSymbol("begin");
+  public static final SchemeObject LambdaSymbol = SchemeObject.makeSymbol("lambda");
+  public static final SchemeObject BeginSymbol = SchemeObject.makeSymbol("begin");
   public static final SchemeObject CondSymbol = SchemeObject.makeSymbol("cond");
   public static final SchemeObject ElseSymbol = SchemeObject.makeSymbol("else");
   public static final SchemeObject LetSymbol = SchemeObject.makeSymbol("let");
   public static final SchemeObject LoadSymbol = SchemeObject.makeSymbol("load");
   public static final SchemeObject OrSymbol = SchemeObject.makeSymbol("or");
   public static final SchemeObject AndSymbol = SchemeObject.makeSymbol("and");
-  public static final SchemeObject ApplySymbol = SchemeObject
-      .makeSymbol("apply");
+  public static final SchemeObject ApplySymbol = SchemeObject.makeSymbol("apply");
 
   // TODO: This doesn't work
   public boolean valueEqual(SchemeObject other) {
