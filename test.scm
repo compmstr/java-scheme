@@ -24,3 +24,13 @@
       (filter even?
         (map (lambda x (sqrt x))
           bigbiglist)))))
+
+(define (imp-range start len)
+  (let ((end (+ start len)))
+    (let ((cur end)
+        (accum '()))
+      (while (> cur start)
+        (set! cur (dec cur))
+        (set! accum (cons cur accum)))
+        accum)))
+        

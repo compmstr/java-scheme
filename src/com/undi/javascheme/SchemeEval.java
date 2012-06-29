@@ -646,7 +646,7 @@ public class SchemeEval {
             exp = makeBegin(procedure.getCompoundProcBody());
             continue TAILCALL;
           }else{
-            System.err.println("Unsupported procedure type");
+            System.err.println("Unsupported procedure type: " + exp);
             System.exit(0);
           }
         }else{
