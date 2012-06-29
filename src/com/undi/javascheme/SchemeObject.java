@@ -539,8 +539,15 @@ public class SchemeObject {
     case HASH_MAP:
       tempString.append("{");
 
-      for (SchemeObject key : this.getHashMap().keySet()) {
-        tempString.append(key + " => " + this.getHashMap().get(key) + ", ");
+      SchemeObject nextEntry;
+      HashMap<SchemeObject, SchemeObject> myMap = this.getHashMap();
+      for (SchemeObject key : myMap.keySet()) {
+        nextEntry = myMap.get(key);
+        if(nextEntry.isHashMap() || nextEntry.isPair()){
+          tempString.append(key + " => *Hash Map or List*, ");
+        }else{
+          tempString.append(key + " => " + nextEntry + ", ");
+        }
       }
       // Clear out the last ", "
       tempString.delete(tempString.lastIndexOf(", "), tempString.length());
