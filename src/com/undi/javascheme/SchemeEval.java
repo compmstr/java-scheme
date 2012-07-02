@@ -436,8 +436,13 @@ public class SchemeEval {
   }
   
   public SchemeObject loadStdLib(SchemeObject env){
-    InputStream stdLibStream = SchemeReader.class.getResourceAsStream("/res/stdlib.scm");
+    InputStream stdLibStream = SchemeEval.class.getResourceAsStream("/res/stdlib.scm");
     loadStream(stdLibStream, env);
+    try{
+      stdLibStream.close();
+    }catch(Exception ex){
+      ex.printStackTrace();
+    }
     return SchemeObject.OkSymbol;
   }
   
@@ -505,6 +510,7 @@ public class SchemeEval {
       retObj = eval(obj, env);
       obj = reader.read();
     }
+    reader.closeStream();
     if(retObj == null){
       return SchemeObject.OkSymbol;
     }else{

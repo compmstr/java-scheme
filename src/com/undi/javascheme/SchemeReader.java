@@ -51,6 +51,14 @@ public class SchemeReader {
     
   }
   
+  public void closeStream(){
+    try {
+      mBufIn.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  
   public boolean isEOF(char c){
     //the stream returns -1 at end of stream, then 255 for every char after that
     return (((short)c == -1) || ((short)c == 255));
