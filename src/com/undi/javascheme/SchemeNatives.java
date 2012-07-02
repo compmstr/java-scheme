@@ -241,7 +241,7 @@ public class SchemeNatives {
       return (args.getCar().isString()) ? SchemeObject.True : SchemeObject.False;
     }
   });
-  public static final SchemeObject pairp = SchemeObject.makeNativeProc(new nativeProc(){
+  public static final SchemeObject listp = SchemeObject.makeNativeProc(new nativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
       return (args.getCar().isPair()) ? SchemeObject.True : SchemeObject.False;
@@ -329,6 +329,12 @@ public class SchemeNatives {
     @Override
     public SchemeObject call(SchemeObject args) {
       return SchemeObject.makeVector(args);
+    }
+  });
+  public static final SchemeObject vectorp = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      return args.getCar().isVector() ? SchemeObject.True : SchemeObject.False;
     }
   });
   
@@ -435,6 +441,12 @@ public class SchemeNatives {
     @Override
     public SchemeObject call(SchemeObject args) {
       return SchemeObject.makeHashMap(args);
+    }
+  });
+  public static final SchemeObject hashMapp = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      return args.getCar().isHashMap() ? SchemeObject.True : SchemeObject.False;
     }
   });
   public static final SchemeObject hashMapGet = SchemeObject.makeNativeProc(new nativeProc(){

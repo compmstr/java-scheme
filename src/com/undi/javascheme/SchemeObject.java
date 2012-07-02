@@ -49,6 +49,8 @@ public class SchemeObject {
           .equals(new String(other.getString()));
     case CHARACTER:
       return this.getCharacter() == other.getCharacter();
+    case SYMBOL:
+      return this.getSymbol().equals(other.getSymbol());
     default:
       return this.mData == other.mData;
     }

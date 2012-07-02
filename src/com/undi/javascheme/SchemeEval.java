@@ -63,7 +63,7 @@ public class SchemeEval {
     addNativeProc("number?", SchemeNatives.numberp); 
     addNativeProc("character?", SchemeNatives.characterp); 
     addNativeProc("string?", SchemeNatives.stringp); 
-    addNativeProc("pair?", SchemeNatives.pairp); 
+    addNativeProc("list?", SchemeNatives.listp); 
     addNativeProc("procedure?", SchemeNatives.procedurep); 
     addNativeProc("number->string", SchemeNatives.numberToString); 
     addNativeProc("string->number", SchemeNatives.stringToNumber); 
@@ -76,6 +76,7 @@ public class SchemeEval {
     addNativeProc("concat", SchemeNatives.concat);
     
     addNativeProc("vector", SchemeNatives.vector);
+    addNativeProc("vector?", SchemeNatives.vectorp);
     addNativeProc("make-vector", SchemeNatives.makeVector);
     addNativeProc("vector-ref", SchemeNatives.vectorRef);
     addNativeProc("vector-set!", SchemeNatives.vectorSet);
@@ -87,6 +88,7 @@ public class SchemeEval {
     addNativeProc("list->vector", SchemeNatives.listToVector);
     
     addNativeProc("make-hashmap", SchemeNatives.makeHashMap);
+    addNativeProc("hashmap?", SchemeNatives.hashMapp);
     addNativeProc("hashmap-set!", SchemeNatives.hashMapSet);
     addNativeProc("hashmap-get", SchemeNatives.hashMapGet);
     addNativeProc("hashmap-del!", SchemeNatives.hashMapDel);
@@ -650,7 +652,7 @@ public class SchemeEval {
             System.exit(0);
           }
         }else{
-          System.err.println("Unsupported expression type");
+          System.err.println("Unsupported expression type: " + exp);
           System.exit(0);
         }
         //Only want to run the while loop once
