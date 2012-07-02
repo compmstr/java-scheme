@@ -250,7 +250,8 @@ public class SchemeNatives {
   public static final SchemeObject procedurep = SchemeObject.makeNativeProc(new nativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      return (args.getCar().isNativeProc()) ? SchemeObject.True : SchemeObject.False;
+      SchemeObject exp = args.getCar();
+      return (exp.isCompoundProc() || exp.isNativeProc()) ? SchemeObject.True : SchemeObject.False;
     }
   });
   public static final SchemeObject characterp = SchemeObject.makeNativeProc(new nativeProc(){
@@ -454,7 +455,12 @@ public class SchemeNatives {
     public SchemeObject call(SchemeObject args) {
       SchemeObject map = args.getCar();
       SchemeObject key = SchemeObject.cadr(args);
-      return map.getHashMap().get(key);
+      SchemeObject ret = map.getHashMap().get(key);
+      if(ret == null){
+        return SchemeObject.EmptyList;
+      }else{
+        return ret;
+      }
     }
   });
   /**

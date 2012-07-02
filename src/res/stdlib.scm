@@ -79,6 +79,16 @@
       (cons (car lst) (filter func (cdr lst)))
       (filter func (cdr lst)))))
 
+(define (vector-filter func vec)
+  (let ((size (vector-length vec))
+        (i 0)
+        (accum (vector)))
+    (while (< i size)
+      (if (func (vector-ref vec i))
+        (vector-add! accum (vector-ref vec i)))
+      (set! i (inc i)))
+    accum))
+
 (define (filter-i func lst)
   (let ((accum (vector)))
     (while (not (empty? lst))
@@ -135,3 +145,30 @@
       (set! i (dec i)))
     accum))
 
+;Lets you know if a list, vector, or hashmap contains an item
+; with a hashmap, it looks for a key, not a value
+(define (contains? lst item)
+  (let ((retval #f))
+    (cond 
+      ((list? lst)
+        (while (not (empty? lst))
+          (if (eq? (car lst) item)
+            (begin
+              (set! retval #t)
+              ;Break out of the loop
+              (set! lst '()))
+            (set! lst (cdr lst)))))
+      ((vector? lst)
+        (let ((size (vector-length lst))
+              (i 0))
+          (while (< i size)
+            (if (eq? (vector-ref lst i) item)
+              (begin
+                (set! retval #t)
+                ;Break out of the loop
+                (set! i (inc size)))
+              (set! i (inc i))))))
+        ((hashmap? lst)
+          ;Get the vector of keys, and look through it
+          (set! retval (hashmap-key? lst item))))
+      retval))
