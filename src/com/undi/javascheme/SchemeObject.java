@@ -35,6 +35,7 @@ public class SchemeObject {
   public static final SchemeObject AndSymbol = SchemeObject.makeSymbol("and");
   public static final SchemeObject ApplySymbol = SchemeObject.makeSymbol("apply");
   public static final SchemeObject WhileSymbol = SchemeObject.makeSymbol("while");
+  public static final SchemeObject EvalSymbol = SchemeObject.makeSymbol("eval");
 
   // TODO: This doesn't work
   public boolean valueEqual(SchemeObject other) {

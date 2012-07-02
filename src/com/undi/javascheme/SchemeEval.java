@@ -1,5 +1,6 @@
 package com.undi.javascheme;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -485,6 +486,32 @@ public class SchemeEval {
     return result;
   }
   
+  //Eval
+  public boolean isEval(SchemeObject exp){
+    return isTaggedList(exp, SchemeObject.EvalSymbol);
+  }
+  
+  public char[] evalString(SchemeObject exp){
+    return SchemeObject.cadr(exp).getString();
+  }
+  
+  public SchemeObject doEval(SchemeObject exp, SchemeObject env){
+    char[] stringToEval = evalString(exp);
+    InputStream in = new ByteArrayInputStream(new String(stringToEval).getBytes());
+    SchemeReader reader = new SchemeReader(in);
+    SchemeObject obj = reader.read();
+    SchemeObject retObj = null;
+    while(obj != null){
+      retObj = eval(obj, env);
+      obj = reader.read();
+    }
+    if(retObj == null){
+      return SchemeObject.OkSymbol;
+    }else{
+      return retObj;
+    }
+  }
+  
   //Environment stuff
   public SchemeObject enclosingEnvironment(SchemeObject env){
     return SchemeObject.cdr(env);
@@ -585,6 +612,8 @@ public class SchemeEval {
           return evalAssignment(exp, env);
         }else if(isVariable(exp)){
           return lookupVariableValue(exp, env);
+        }else if(isEval(exp)){
+          return doEval(exp, env);
         }else if(isIf(exp)){
           exp = SchemeObject.isTrue(eval(ifPredicate(exp), env))?
               ifThen(exp) :
