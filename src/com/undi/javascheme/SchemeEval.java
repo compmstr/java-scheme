@@ -55,6 +55,7 @@ public class SchemeEval {
     addNativeProc("cons", SchemeNatives.cons); 
     addNativeProc("car", SchemeNatives.car); 
     addNativeProc("cdr", SchemeNatives.cdr); 
+    addNativeProc("length", SchemeNatives.length);
     addNativeProc("set-car!", SchemeNatives.setCar); 
     addNativeProc("set-cdr!", SchemeNatives.setCdr); 
     addNativeProc("list", SchemeNatives.list); 
@@ -569,6 +570,15 @@ public class SchemeEval {
       }
       env = enclosingEnvironment(env);
     }
+    //Check if this is a java-defined name
+    if(var.getSymbol().startsWith(".")){
+      System.out.println("Java method/member: " + var.getSymbol().substring(1));
+      return SchemeObject.makeJavaMethod(var.getSymbol().substring(1));
+    }else if(var.getSymbol().endsWith(".")){
+      String className = var.getSymbol().substring(0, var.getSymbol().length() - 1);
+      System.out.println("Java Constructor: " + className);
+      return SchemeObject.makeJavaConstructor(className);
+    }
     System.err.println("Unbound Variable: " + var.getSymbol());
     System.exit(1);
     return null;
@@ -682,6 +692,10 @@ public class SchemeEval {
                                     procedure.getCompoundProcEnv());
             exp = makeBegin(procedure.getCompoundProcBody());
             continue TAILCALL;
+          }else if(procedure.isJavaMethod()){
+            return procedure.callJavaMethod(arguments);
+          }else if(procedure.isJavaConstructor()){
+            return SchemeObject.makeJavaObj(procedure.callJavaConstructor(arguments));
           }else{
             System.err.println("Unsupported procedure type: " + exp);
             System.exit(0);

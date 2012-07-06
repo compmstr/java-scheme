@@ -191,6 +191,18 @@ public class SchemeNatives {
       return SchemeObject.cdar(args);
     }
   });
+  public static final SchemeObject length = SchemeObject.makeNativeProc(new nativeProc(){
+    @Override
+    public SchemeObject call(SchemeObject args) {
+      int length = 0;
+      SchemeObject carArg = args.getCar();
+      while(!carArg.isEmptyList()){
+        carArg = carArg.getCdr();
+        length++;
+      }
+      return SchemeObject.makeNumber(length);
+    }
+  });
   public static final SchemeObject setCar = SchemeObject.makeNativeProc(new nativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {

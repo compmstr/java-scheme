@@ -3,17 +3,19 @@ package com.undi.javascheme;
 import java.util.HashMap;
 import java.util.Vector;
 import com.undi.util.HashCodeUtil;
+import com.undi.util.Reflector;
 
 //This class works almost like a union
 public class SchemeObject {
   public static enum type {
     NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NATIVE_PROC, 
-    COMPOUND_PROC, VECTOR, HASH_MAP, NUM_TYPES
+    COMPOUND_PROC, VECTOR, HASH_MAP, JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, NUM_TYPES
   };
 
   public type getType() {
     return this.mType;
   }
+  
 
   public static final SchemeObject True = SchemeObject.createBoolean(true);
   public static final SchemeObject False = SchemeObject.createBoolean(false);
@@ -57,6 +59,87 @@ public class SchemeObject {
     }
   }
 
+  //Java Methods/constructors
+  public static SchemeObject makeJavaConstructor(String className){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.JAVA_CONSTRUCTOR;
+    obj.mData = className;
+    return obj;
+  }
+  public Object callJavaConstructor(SchemeObject args){
+    if(this.mType != type.JAVA_CONSTRUCTOR){
+      System.err.println("Object Isn't a Java Constructor!");
+      System.exit(1);
+    }
+    Object[] argsArray = prepJavaArgs(args);
+    return Reflector.invokeStaticMethod((String)this.mData, "new", argsArray);
+  }
+  public boolean isJavaMethod(){
+    return this.mType == type.JAVA_METHOD;
+  }
+  public boolean isJavaConstructor(){
+    return this.mType == type.JAVA_CONSTRUCTOR;
+  }
+  
+  public static SchemeObject makeJavaMethod(String methodName){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.JAVA_METHOD;
+    obj.mData = methodName;
+    return obj;
+  }
+  
+  public Object[] prepJavaArgs(SchemeObject args){
+    int numArgs = (int)SchemeNatives.length.getNativeProc().call(
+        SchemeObject.cons(args, SchemeObject.EmptyList)).getNumber();
+    Object[] retArgs = new Object[numArgs];
+    int index = 0;
+    while(!args.isEmptyList()){
+      //TODO: handle odd data types like lists, vectors, etc
+      SchemeObject curArg = args.getCar();
+      if(curArg.isString()){
+        retArgs[index] = new String(curArg.getString());
+      }else{
+        retArgs[index] = curArg.mData;
+      }
+      
+      index++;
+      args = args.getCdr();
+    }
+    return retArgs;
+  }
+  
+  public SchemeObject callJavaMethod(SchemeObject args){
+    if(this.mType != type.JAVA_METHOD){
+      System.err.println("Object Isn't a Java Method!");
+      System.exit(1);
+    }
+    Object target = args.getCar().getJavaObj();
+    Object[] argsArray = prepJavaArgs(args.getCdr());
+    //TODO - cast this to the appropriate SchemeObject
+    Object retObj = Reflector.invokeInstanceMethod(target, (String) this.mData, argsArray);
+    return makeJavaObj(retObj);
+  }
+  
+  //Java Objects
+  /**
+   * @param className - the class name for the object to create
+   * @param params - parameters to pass to the constructor
+   */
+  public static SchemeObject makeJavaObj(Object data){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.JAVA_OBJ;
+    obj.mData = data;
+    return obj;
+  }
+  
+  public Object getJavaObj(){
+    if(this.mType != type.JAVA_OBJ){
+      System.err.println("Object Isn't a Java Object!");
+      System.exit(1);
+    }
+    return this.mData;
+  }
+  
   // Compound Proc
   public static SchemeObject makeCompoundProc(SchemeObject params,
       SchemeObject body, SchemeObject env) {
@@ -552,6 +635,13 @@ public class SchemeObject {
       tempString.delete(tempString.lastIndexOf(", "), tempString.length());
 
       tempString.append("}");
+      break;
+    case JAVA_OBJ:
+      tempString.append("<Java Obj: ");
+      
+      tempString.append(this.getJavaObj());
+      
+      tempString.append(">");
       break;
     }
 

@@ -77,7 +77,7 @@ public class SchemeReader {
    */
   public boolean isInitial(int c){
     return Character.isLetter(c) || c == '*' || c == '/' || c == '>'||
-             c == '<' || c == '=' || c == '?' || c == '!';
+             c == '<' || c == '=' || c == '?' || c == '!' || c == '.';
   }
   
   /**
@@ -311,7 +311,7 @@ getString:
     
     int c = getc();
     while(isInitial(c) || Character.isDigit(c) ||
-        c == '+' || c == '-'){
+        c == '+' || c == '-' || c == '.'){
       buffer.append((char)c);
       c = getc();
     }
