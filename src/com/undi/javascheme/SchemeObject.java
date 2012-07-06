@@ -9,7 +9,8 @@ import com.undi.util.Reflector;
 public class SchemeObject {
   public static enum type {
     NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NATIVE_PROC, 
-    COMPOUND_PROC, VECTOR, HASH_MAP, JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, NUM_TYPES
+    COMPOUND_PROC, VECTOR, HASH_MAP,
+    JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, JAVA_STATIC_METHOD, NUM_TYPES
   };
 
   public type getType() {
@@ -117,6 +118,31 @@ public class SchemeObject {
     Object[] argsArray = prepJavaArgs(args.getCdr());
     //TODO - cast this to the appropriate SchemeObject
     Object retObj = Reflector.invokeInstanceMethod(target, (String) this.mData, argsArray);
+    return makeJavaObj(retObj);
+  }
+  
+  public static SchemeObject makeJavaStaticMethod(String className, String methodName){
+    SchemeObject obj = new SchemeObject();
+    obj.mType = type.JAVA_STATIC_METHOD;
+    String[] data = new String[2];
+    data[0] = className;
+    data[1] = methodName;
+    obj.mData = data;
+    return obj;
+  }
+  public boolean isJavaStaticMethod(){
+    return this.mType == type.JAVA_STATIC_METHOD;
+  }
+  public SchemeObject callJavaStaticMethod(SchemeObject args){
+    if(this.mType != type.JAVA_STATIC_METHOD){
+      System.err.println("Object Isn't a Java Static Method!");
+      System.exit(1);
+    }
+    Object[] argsArray = prepJavaArgs(args);
+    String className = ((String[]) this.mData)[0];
+    String methodName = ((String[]) this.mData)[1];
+    //TODO - cast this to the appropriate SchemeObject
+    Object retObj = Reflector.invokeStaticMethod(className, methodName, argsArray);
     return makeJavaObj(retObj);
   }
   

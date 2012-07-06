@@ -6,7 +6,7 @@ TODO:
   Look into making a compiler to bytecode
   Macros
 
-  Find some way to do java interop
+  Find some way to do java interop +Done+
     +Add Constructors/Method calls (<Class>. ...) (.<Method> target ...)
-    *Add Instance Field access <target>/<field>
-    *Add Static Field access <Class>/<Field>
+    +Add Instance Field access <target>/<field>
+    +Add Static Field access <Class>/<Field>

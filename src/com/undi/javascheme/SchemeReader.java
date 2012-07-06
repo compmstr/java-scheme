@@ -311,7 +311,7 @@ getString:
     
     int c = getc();
     while(isInitial(c) || Character.isDigit(c) ||
-        c == '+' || c == '-' || c == '.'){
+        c == '+' || c == '-' || c == '.' || c == '/' || c == '_'){
       buffer.append((char)c);
       c = getc();
     }
