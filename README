@@ -2,7 +2,11 @@ My interpretation of the (no longer meta-circular)
 Scheme interpreter from SICP
 
 TODO:
-  Find some way to do java interop
   Make sequences all share an api (a-la clojure)
   Look into making a compiler to bytecode
   Macros
+
+  Find some way to do java interop
+    +Add Constructors/Method calls (<Class>. ...) (.<Method> target ...)
+    *Add Instance Field access <target>/<field>
+    *Add Static Field access <Class>/<Field>
