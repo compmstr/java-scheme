@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import com.undi.util.Reflector;
+
 public class SchemeEval {
   
   private static final SchemeObject EmptyEnvironment = SchemeObject.EmptyList;
@@ -55,6 +57,7 @@ public class SchemeEval {
     addNativeProc("cons", SchemeNatives.cons); 
     addNativeProc("car", SchemeNatives.car); 
     addNativeProc("cdr", SchemeNatives.cdr); 
+    addNativeProc("length", SchemeNatives.length);
     addNativeProc("set-car!", SchemeNatives.setCar); 
     addNativeProc("set-cdr!", SchemeNatives.setCdr); 
     addNativeProc("list", SchemeNatives.list); 
@@ -556,6 +559,8 @@ public class SchemeEval {
   }
   
   public SchemeObject lookupVariableValue(SchemeObject var, SchemeObject env){
+    //Backup of env so we can look through variables again on java interop
+    SchemeObject originalEnv = env;
     HashMap<SchemeObject, SchemeObject> frameMap;
     SchemeObject result = null;
     while(!env.isEmptyList()){
@@ -569,9 +574,38 @@ public class SchemeEval {
       }
       env = enclosingEnvironment(env);
     }
-    System.err.println("Unbound Variable: " + var.getSymbol());
-    System.exit(1);
-    return null;
+    //Check if this is a java-defined name
+    //Check for instance/static fields
+    if(var.getSymbol().contains("/")){
+      String[] parts = var.getSymbol().split("/");
+      if(parts.length == 2){
+        String varName = parts[0];
+        String fieldName = parts[1];
+        //Check if varName is a variable
+        try{
+          SchemeObject javaObj = lookupVariableValue(SchemeObject.makeSymbol(varName), originalEnv);
+          return SchemeObject.makeJavaObj(Reflector.getInstanceField(javaObj.getJavaObj(), fieldName));
+        }catch(IllegalArgumentException ex){
+          //Not a variable, try for static field
+          try{
+            return SchemeObject.makeJavaObj(Reflector.getStaticField(varName, fieldName));
+          }catch(RuntimeException e){
+            //Not a field, try for a static method 
+            return SchemeObject.makeJavaStaticMethod(varName, fieldName);
+          }
+        }
+      }
+    }
+    //Check for classes/methods
+    if(var.getSymbol().startsWith(".")){
+      System.out.println("Java method/member: " + var.getSymbol().substring(1));
+      return SchemeObject.makeJavaMethod(var.getSymbol().substring(1));
+    }else if(var.getSymbol().endsWith(".")){
+      String className = var.getSymbol().substring(0, var.getSymbol().length() - 1);
+      System.out.println("Java Constructor: " + className);
+      return SchemeObject.makeJavaConstructor(className);
+    }
+    throw new IllegalArgumentException("Unbound Variable: " + var.getSymbol());
   }
   
   public void setVariableValue(SchemeObject var, SchemeObject val, SchemeObject env){
@@ -617,7 +651,12 @@ public class SchemeEval {
         }else if(isAssignment(exp)){
           return evalAssignment(exp, env);
         }else if(isVariable(exp)){
-          return lookupVariableValue(exp, env);
+          try{
+            return lookupVariableValue(exp, env);
+          }catch(IllegalArgumentException ex){
+            System.err.println("Unbound Variable: " + exp.getCar().getSymbol());
+            System.exit(1);
+          }
         }else if(isEval(exp)){
           return doEval(exp, env);
         }else if(isIf(exp)){
@@ -682,6 +721,12 @@ public class SchemeEval {
                                     procedure.getCompoundProcEnv());
             exp = makeBegin(procedure.getCompoundProcBody());
             continue TAILCALL;
+          }else if(procedure.isJavaMethod()){
+            return procedure.callJavaMethod(arguments);
+          }else if(procedure.isJavaStaticMethod()){
+            return procedure.callJavaStaticMethod(arguments);
+          }else if(procedure.isJavaConstructor()){
+            return SchemeObject.makeJavaObj(procedure.callJavaConstructor(arguments));
           }else{
             System.err.println("Unsupported procedure type: " + exp);
             System.exit(0);
