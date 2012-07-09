@@ -11,11 +11,11 @@ import com.undi.util.Reflector;
 
 public class SchemeEval {
   
-  private static final SchemeObject EmptyEnvironment = SchemeObject.EmptyList;
-  private SchemeObject GlobalEnvironment;
+  private static final SchemeObject emptyEnvironment = SchemeObject.THE_EMPTY_LIST;
+  private SchemeObject globalEnvironment;
   
   public SchemeObject getGlobalEnv(){
-    return this.GlobalEnvironment;
+    return this.globalEnvironment;
   }
   public boolean isSelfEvaluating(SchemeObject obj){
     return obj.isString() || obj.isBoolean() || obj.isNumber() || obj.isCharacter();
@@ -24,10 +24,10 @@ public class SchemeEval {
   public void addNativeProc(String symbol, SchemeObject proc){
     defineVariable(SchemeObject.makeSymbol(symbol),
                     proc,
-                    this.GlobalEnvironment);
+                    this.globalEnvironment);
   }
   
-  private SchemeObject globalEnv = SchemeObject.makeNativeProc(new SchemeNatives.nativeProc(){
+  private final SchemeObject globalEnv = SchemeObject.makeNativeProc(new SchemeNatives.NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
       return getGlobalEnv();
@@ -40,7 +40,7 @@ public class SchemeEval {
   }
   
   public SchemeEval(boolean loadStdlib){
-    this.GlobalEnvironment = this.setupEnvironment();
+    this.globalEnvironment = this.setupEnvironment();
     //Set up native procedures
     addNativeProc("+", SchemeNatives.add); 
     addNativeProc("-", SchemeNatives.sub); 
@@ -107,7 +107,7 @@ public class SchemeEval {
     //Load the standard lib
     if(loadStdlib){
       System.out.println("Reading stdlib...");
-      this.loadStdLib(GlobalEnvironment);
+      this.loadStdLib(globalEnvironment);
       System.out.println("Done.");
     }
   }
@@ -121,7 +121,7 @@ public class SchemeEval {
   }
   
   public boolean isQuoted(SchemeObject obj){
-    return isTaggedList(obj, SchemeObject.QuoteSymbol);
+    return isTaggedList(obj, SchemeObject.QUOTE_SYMBOL);
   }
   
   public SchemeObject quoteContents(SchemeObject exp){
@@ -133,7 +133,7 @@ public class SchemeEval {
   }
   
   public boolean isAssignment(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.SetSymbol);
+    return isTaggedList(exp, SchemeObject.SET_SYMBOL);
   }
   public SchemeObject assignmentVariable(SchemeObject exp){
     return SchemeObject.cadr(exp);
@@ -143,7 +143,7 @@ public class SchemeEval {
   }
   
   public boolean isDefinition(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.DefineSymbol);
+    return isTaggedList(exp, SchemeObject.DEFINE_SYMBOL);
   }
   public SchemeObject definitionVariable(SchemeObject exp){
     if(SchemeObject.cadr(exp).isSymbol()){
@@ -163,19 +163,19 @@ public class SchemeEval {
   
   public SchemeObject evalAssignment(SchemeObject exp, SchemeObject env){
     setVariableValue(assignmentVariable(exp), eval(assignmentValue(exp), env), env);
-    return SchemeObject.OkSymbol;
+    return SchemeObject.OK_SYMBOL;
   }
   public SchemeObject evalDefinition(SchemeObject exp, SchemeObject env){
     defineVariable(definitionVariable(exp), eval(definitionValue(exp), env), env);
-    return SchemeObject.OkSymbol;
+    return SchemeObject.OK_SYMBOL;
   }
   
   //Lambda Stuff
   public SchemeObject makeLambda(SchemeObject params, SchemeObject body){
-    return SchemeObject.cons(SchemeObject.LambdaSymbol, SchemeObject.cons(params, body));
+    return SchemeObject.cons(SchemeObject.LAMBDA_SYMBOL, SchemeObject.cons(params, body));
   }
   public boolean isLambda(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.LambdaSymbol);
+    return isTaggedList(exp, SchemeObject.LAMBDA_SYMBOL);
   }
   public SchemeObject lambdaParams(SchemeObject exp){
     return SchemeObject.cadr(exp);
@@ -186,10 +186,10 @@ public class SchemeEval {
   
   //Begin stuff
   public SchemeObject makeBegin(SchemeObject exp){
-    return SchemeObject.cons(SchemeObject.BeginSymbol, exp);
+    return SchemeObject.cons(SchemeObject.BEGIN_SYMBOL, exp);
   }
   public boolean isBegin(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.BeginSymbol);
+    return isTaggedList(exp, SchemeObject.BEGIN_SYMBOL);
   }
   public SchemeObject beginActions(SchemeObject exp){
     return exp.getCdr();
@@ -206,13 +206,13 @@ public class SchemeEval {
   
   //If Stuff
   public SchemeObject makeIf(SchemeObject predicate, SchemeObject ifThen, SchemeObject ifElse){
-    return SchemeObject.cons(SchemeObject.IfSymbol,
+    return SchemeObject.cons(SchemeObject.IF_SYMBOL,
                         SchemeObject.cons(predicate, 
                             SchemeObject.cons(ifThen, 
-                                SchemeObject.cons(ifElse, SchemeObject.EmptyList))));
+                                SchemeObject.cons(ifElse, SchemeObject.THE_EMPTY_LIST))));
   }
   public boolean isIf(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.IfSymbol);
+    return isTaggedList(exp, SchemeObject.IF_SYMBOL);
   }
   public SchemeObject ifPredicate(SchemeObject exp){
     return SchemeObject.cadr(exp);
@@ -222,7 +222,7 @@ public class SchemeEval {
   }
   public SchemeObject ifElse(SchemeObject exp){
     if(SchemeObject.cadddr(exp).isEmptyList()){
-      return SchemeObject.False;
+      return SchemeObject.FALSE;
     }else{
       return SchemeObject.cadddr(exp);
     }
@@ -230,7 +230,7 @@ public class SchemeEval {
   
   //And stuff
   public boolean isAnd(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.AndSymbol);
+    return isTaggedList(exp, SchemeObject.AND_SYMBOL);
   }
   public SchemeObject andPredicates(SchemeObject exp){
     return exp.getCdr();
@@ -238,7 +238,7 @@ public class SchemeEval {
   
   //Or stuff
   public boolean isOr(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.OrSymbol);
+    return isTaggedList(exp, SchemeObject.OR_SYMBOL);
   }
   public SchemeObject orPredicates(SchemeObject exp){
     return exp.getCdr();
@@ -246,7 +246,7 @@ public class SchemeEval {
   
   //Cond stuff
   public boolean isCond(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.CondSymbol);
+    return isTaggedList(exp, SchemeObject.COND_SYMBOL);
   }
   public SchemeObject condClauses(SchemeObject exp){
     return exp.getCdr();
@@ -258,7 +258,7 @@ public class SchemeEval {
     return clause.getCdr();
   }
   public boolean isCondElseClause(SchemeObject clause){
-    return condPredicate(clause) == SchemeObject.ElseSymbol;
+    return condPredicate(clause) == SchemeObject.ELSE_SYMBOL;
   }
   public SchemeObject sequenceToExp(SchemeObject seq){
     if(seq.isEmptyList()){
@@ -273,7 +273,7 @@ public class SchemeEval {
     SchemeObject first;
     SchemeObject rest;
     if(clauses.isEmptyList()){
-      return SchemeObject.False;
+      return SchemeObject.FALSE;
     }else{
       first = clauses.getCar();
       rest = clauses.getCdr();
@@ -299,7 +299,7 @@ public class SchemeEval {
   
   //Apply form
   public boolean isApply(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.ApplySymbol);
+    return isTaggedList(exp, SchemeObject.APPLY_SYMBOL);
   }
   public SchemeObject applyOperation(SchemeObject exp){
     return SchemeObject.cadr(exp);
@@ -350,7 +350,7 @@ public class SchemeEval {
   
   public SchemeObject listOfValues(SchemeObject exps, SchemeObject env){
     if(isNoOperands(exps)){
-      return SchemeObject.EmptyList;
+      return SchemeObject.THE_EMPTY_LIST;
     }else{
       return SchemeObject.cons(eval(firstOperand(exps), env),
                                 listOfValues(restOperands(exps), env));
@@ -359,7 +359,7 @@ public class SchemeEval {
   
   //Let stuff
   public boolean isLet(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.LetSymbol);
+    return isTaggedList(exp, SchemeObject.LET_SYMBOL);
   }
   //(let <((a 5))> ...)
   public SchemeObject letBindings(SchemeObject exp){
@@ -383,13 +383,13 @@ public class SchemeEval {
    */
   public SchemeObject bindingsParameters(SchemeObject bindings){
     return bindings.isEmptyList()?
-          SchemeObject.EmptyList :
+          SchemeObject.THE_EMPTY_LIST :
             SchemeObject.cons(bindingParameter(bindings.getCar()),
                   bindingsParameters(bindings.getCdr()));
   }
   public SchemeObject bindingsArguments(SchemeObject bindings){
     return bindings.isEmptyList()?
-          SchemeObject.EmptyList :
+          SchemeObject.THE_EMPTY_LIST :
             SchemeObject.cons(bindingArgument(bindings.getCar()),
                   bindingsArguments(bindings.getCdr()));
   }
@@ -409,7 +409,7 @@ public class SchemeEval {
   
   //Load
   public boolean isLoad(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.LoadSymbol);
+    return isTaggedList(exp, SchemeObject.LOAD_SYMBOL);
   }
   /**
    * 
@@ -424,7 +424,7 @@ public class SchemeEval {
         fin = new FileInputStream(filename);
       } catch (FileNotFoundException e) {
         System.err.println("File: " + filename + " not found for load");
-        return SchemeObject.False;
+        return SchemeObject.FALSE;
       }
       
       loadStream(fin, env);
@@ -435,7 +435,7 @@ public class SchemeEval {
         System.err.println("Unable to close file: " + filename);
       }
       
-      return SchemeObject.OkSymbol;
+      return SchemeObject.OK_SYMBOL;
   }
   
   public SchemeObject loadStdLib(SchemeObject env){
@@ -446,7 +446,7 @@ public class SchemeEval {
     }catch(Exception ex){
       ex.printStackTrace();
     }
-    return SchemeObject.OkSymbol;
+    return SchemeObject.OK_SYMBOL;
   }
   
   /**
@@ -462,12 +462,12 @@ public class SchemeEval {
       eval(obj, env);
       obj = reader.read();
     }
-    return SchemeObject.OkSymbol;
+    return SchemeObject.OK_SYMBOL;
   }
   
   //While loops
   public boolean isWhile(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.WhileSymbol);
+    return isTaggedList(exp, SchemeObject.WHILE_SYMBOL);
   }
   public SchemeObject whilePredicate(SchemeObject exp){
     return SchemeObject.cadr(exp);
@@ -481,7 +481,7 @@ public class SchemeEval {
     SchemeObject predicate = whilePredicate(exp);
     SchemeObject body = whileBody(exp);
     
-    SchemeObject result = SchemeObject.EmptyList;
+    SchemeObject result = SchemeObject.THE_EMPTY_LIST;
     while(SchemeObject.isTrue(eval(predicate, env))){
       SchemeObject exps = body;
       while(!isLastExp(exps)){
@@ -496,7 +496,7 @@ public class SchemeEval {
   
   //Eval
   public boolean isEval(SchemeObject exp){
-    return isTaggedList(exp, SchemeObject.EvalSymbol);
+    return isTaggedList(exp, SchemeObject.EVAL_SYMBOL);
   }
   
   public char[] evalString(SchemeObject exp){
@@ -515,7 +515,7 @@ public class SchemeEval {
     }
     reader.closeStream();
     if(retObj == null){
-      return SchemeObject.OkSymbol;
+      return SchemeObject.OK_SYMBOL;
     }else{
       return retObj;
     }
@@ -530,7 +530,7 @@ public class SchemeEval {
   }
   public SchemeObject makeFrame(SchemeObject vars, SchemeObject vals){
     //return SchemeObject.cons(vars, vals);
-    SchemeObject bindings = SchemeObject.EmptyList;
+    SchemeObject bindings = SchemeObject.THE_EMPTY_LIST;
     while(!vars.isEmptyList()){
       bindings = SchemeObject.cons(vars.getCar(), 
             SchemeObject.cons(vals.getCar(), bindings));
@@ -630,9 +630,9 @@ public class SchemeEval {
   
   public SchemeObject setupEnvironment(){
     SchemeObject initialEnv;
-    initialEnv = extendEnvironment(SchemeObject.EmptyList,
-                                      SchemeObject.EmptyList, 
-                                      EmptyEnvironment);
+    initialEnv = extendEnvironment(SchemeObject.THE_EMPTY_LIST,
+                                      SchemeObject.THE_EMPTY_LIST, 
+                                      emptyEnvironment);
     
     return initialEnv;
   }
@@ -669,7 +669,7 @@ public class SchemeEval {
           exp = andPredicates(exp);
           while(!isLastExp(exp)){
             if(SchemeObject.isFalse(eval(firstExp(exp), env))){
-              exp = SchemeObject.False;
+              exp = SchemeObject.FALSE;
               continue TAILCALL;
             }
             exp = restExps(exp);
@@ -680,7 +680,7 @@ public class SchemeEval {
           exp = andPredicates(exp);
           while(!isLastExp(exp)){
             if(SchemeObject.isTrue(eval(firstExp(exp), env))){
-              exp = SchemeObject.True;
+              exp = SchemeObject.TRUE;
               continue TAILCALL;
             }
             exp = restExps(exp);

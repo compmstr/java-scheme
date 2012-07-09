@@ -45,7 +45,7 @@ public class SchemeReader {
       public SchemeObject read(){
         //clean up trailing ')'
         getc();
-        return SchemeObject.EmptyList;
+        return SchemeObject.THE_EMPTY_LIST;
         } 
     };
     
@@ -276,7 +276,7 @@ getString:
     eatWhitespace();
     int c = getc();
     if(c == ')'){
-      return SchemeObject.EmptyList;
+      return SchemeObject.THE_EMPTY_LIST;
     }
     ungetc(c);
     SchemeObject carObject = read();
@@ -343,7 +343,7 @@ getString:
     }
     if(this.readFuncs[nextType.ordinal()] != null){
       if(quoted){
-        return SchemeObject.cons(SchemeObject.QuoteSymbol, SchemeObject.cons(this.readFuncs[nextType.ordinal()].read(), SchemeObject.EmptyList));
+        return SchemeObject.cons(SchemeObject.QUOTE_SYMBOL, SchemeObject.cons(this.readFuncs[nextType.ordinal()].read(), SchemeObject.THE_EMPTY_LIST));
       }else{
         return this.readFuncs[nextType.ordinal()].read();
       }

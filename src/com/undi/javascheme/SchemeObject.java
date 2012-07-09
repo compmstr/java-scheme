@@ -12,35 +12,42 @@ public class SchemeObject {
     COMPOUND_PROC, VECTOR, HASH_MAP,
     JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, JAVA_STATIC_METHOD, NUM_TYPES
   };
+  
+  private type mType;
+  private Object mData;
+
+  public static final SchemeObject TRUE = SchemeObject.createBoolean(true);
+  public static final SchemeObject FALSE = SchemeObject.createBoolean(false);
+  public static final SchemeObject THE_EMPTY_LIST = SchemeObject.createEmptyList();
+
+  public static SchemeObject symbolTable = SchemeObject.THE_EMPTY_LIST;
+  public static final SchemeObject QUOTE_SYMBOL = SchemeObject.makeSymbol("quote");
+  public static final SchemeObject DEFINE_SYMBOL = SchemeObject.makeSymbol("define");
+  public static final SchemeObject SET_SYMBOL = SchemeObject.makeSymbol("set!");
+  public static final SchemeObject OK_SYMBOL = SchemeObject.makeSymbol("ok");
+  public static final SchemeObject IF_SYMBOL = SchemeObject.makeSymbol("if");
+  public static final SchemeObject LAMBDA_SYMBOL = SchemeObject.makeSymbol("lambda");
+  public static final SchemeObject BEGIN_SYMBOL = SchemeObject.makeSymbol("begin");
+  public static final SchemeObject COND_SYMBOL = SchemeObject.makeSymbol("cond");
+  public static final SchemeObject ELSE_SYMBOL = SchemeObject.makeSymbol("else");
+  public static final SchemeObject LET_SYMBOL = SchemeObject.makeSymbol("let");
+  public static final SchemeObject LOAD_SYMBOL = SchemeObject.makeSymbol("load");
+  public static final SchemeObject OR_SYMBOL = SchemeObject.makeSymbol("or");
+  public static final SchemeObject AND_SYMBOL = SchemeObject.makeSymbol("and");
+  public static final SchemeObject APPLY_SYMBOL = SchemeObject.makeSymbol("apply");
+  public static final SchemeObject WHILE_SYMBOL = SchemeObject.makeSymbol("while");
+  public static final SchemeObject EVAL_SYMBOL = SchemeObject.makeSymbol("eval");
 
   public type getType() {
     return this.mType;
   }
   
-
-  public static final SchemeObject True = SchemeObject.createBoolean(true);
-  public static final SchemeObject False = SchemeObject.createBoolean(false);
-  public static final SchemeObject EmptyList = SchemeObject.createEmptyList();
-
-  public static SchemeObject SymbolTable = SchemeObject.EmptyList;
-  public static final SchemeObject QuoteSymbol = SchemeObject.makeSymbol("quote");
-  public static final SchemeObject DefineSymbol = SchemeObject.makeSymbol("define");
-  public static final SchemeObject SetSymbol = SchemeObject.makeSymbol("set!");
-  public static final SchemeObject OkSymbol = SchemeObject.makeSymbol("ok");
-  public static final SchemeObject IfSymbol = SchemeObject.makeSymbol("if");
-  public static final SchemeObject LambdaSymbol = SchemeObject.makeSymbol("lambda");
-  public static final SchemeObject BeginSymbol = SchemeObject.makeSymbol("begin");
-  public static final SchemeObject CondSymbol = SchemeObject.makeSymbol("cond");
-  public static final SchemeObject ElseSymbol = SchemeObject.makeSymbol("else");
-  public static final SchemeObject LetSymbol = SchemeObject.makeSymbol("let");
-  public static final SchemeObject LoadSymbol = SchemeObject.makeSymbol("load");
-  public static final SchemeObject OrSymbol = SchemeObject.makeSymbol("or");
-  public static final SchemeObject AndSymbol = SchemeObject.makeSymbol("and");
-  public static final SchemeObject ApplySymbol = SchemeObject.makeSymbol("apply");
-  public static final SchemeObject WhileSymbol = SchemeObject.makeSymbol("while");
-  public static final SchemeObject EvalSymbol = SchemeObject.makeSymbol("eval");
-
   // TODO: This doesn't work
+  /**
+   * Polymorphic check for equality of the values of two schemeObjects
+   * @param other the object to check agains
+   * @return 
+   */
   public boolean valueEqual(SchemeObject other) {
     if (other.mType != this.mType) {
       return false;
@@ -55,6 +62,8 @@ public class SchemeObject {
       return this.getCharacter() == other.getCharacter();
     case SYMBOL:
       return this.getSymbol().equals(other.getSymbol());
+    case BOOLEAN:
+      return this.getBoolean() == other.getBoolean();
     default:
       return this.mData == other.mData;
     }
@@ -91,7 +100,7 @@ public class SchemeObject {
   
   public Object[] prepJavaArgs(SchemeObject args){
     int numArgs = (int)SchemeNatives.length.getNativeProc().call(
-        SchemeObject.cons(args, SchemeObject.EmptyList)).getNumber();
+        SchemeObject.cons(args, SchemeObject.THE_EMPTY_LIST)).getNumber();
     Object[] retArgs = new Object[numArgs];
     int index = 0;
     while(!args.isEmptyList()){
@@ -211,7 +220,7 @@ public class SchemeObject {
   }
 
   // Native Proc
-  public static SchemeObject makeNativeProc(SchemeNatives.nativeProc proc) {
+  public static SchemeObject makeNativeProc(SchemeNatives.NativeProc proc) {
     SchemeObject obj = new SchemeObject();
     obj.mType = type.NATIVE_PROC;
     obj.mData = proc;
@@ -222,18 +231,18 @@ public class SchemeObject {
     return this.mType == type.NATIVE_PROC;
   }
 
-  public SchemeNatives.nativeProc getNativeProc() {
+  public SchemeNatives.NativeProc getNativeProc() {
     if (this.mType != type.NATIVE_PROC) {
       System.err.println("Object Isn't a Native Proc!");
       System.exit(1);
     }
-    return (SchemeNatives.nativeProc) this.mData;
+    return (SchemeNatives.NativeProc) this.mData;
   }
 
   // Pairs
   public static SchemeObject makePair(SchemeObject car, SchemeObject cdr) {
     if (car == null && cdr == null) {
-      return EmptyList;
+      return THE_EMPTY_LIST;
     }
     SchemeObject obj = new SchemeObject();
     obj.mType = type.PAIR;
@@ -269,7 +278,7 @@ public class SchemeObject {
     if (this.mType == type.PAIR) {
       return ((SchemeObject[]) this.mData)[1];
     } else {
-      return EmptyList;
+      return THE_EMPTY_LIST;
     }
   }
 
@@ -338,7 +347,7 @@ public class SchemeObject {
   }
 
   public static boolean isFalse(SchemeObject obj) {
-    return obj == False;
+    return obj == FALSE;
   }
 
   public static boolean isTrue(SchemeObject obj) {
@@ -402,7 +411,7 @@ public class SchemeObject {
   }
 
   public static SchemeObject makeBoolean(boolean value) {
-    return (value) ? SchemeObject.True : SchemeObject.False;
+    return (value) ? SchemeObject.TRUE : SchemeObject.FALSE;
   }
 
   private void setBoolean(boolean value) {
@@ -475,7 +484,7 @@ public class SchemeObject {
   }
 
   public static SchemeObject makeEmptyList() {
-    return SchemeObject.EmptyList;
+    return SchemeObject.THE_EMPTY_LIST;
   }
 
   public boolean isEmptyList() {
@@ -485,7 +494,7 @@ public class SchemeObject {
   // Symbols
   public static SchemeObject makeSymbol(String value) {
     // See if this symbol is in the symbol table
-    SchemeObject elt = SymbolTable;
+    SchemeObject elt = symbolTable;
     while (!elt.isEmptyList()) {
       if (car(elt).getSymbol().equals(value)) {
         return car(elt);
@@ -494,7 +503,7 @@ public class SchemeObject {
     }
     SchemeObject obj = new SchemeObject();
     obj.setSymbol(value);
-    SymbolTable = cons(obj, SymbolTable);
+    symbolTable = cons(obj, symbolTable);
     return obj;
   }
 
@@ -542,7 +551,7 @@ public class SchemeObject {
     // If it's a vector, we know it has a vector as data
     Vector<SchemeObject> myVec = this.getVector();
     myVec.add(obj);
-    return OkSymbol;
+    return OK_SYMBOL;
   }
 
   public boolean isVector() {
@@ -579,7 +588,7 @@ public class SchemeObject {
 
   public SchemeObject setHashMap(SchemeObject key, SchemeObject val) {
     this.getHashMap().put(key, val);
-    return OkSymbol;
+    return OK_SYMBOL;
   }
 
   @SuppressWarnings("unchecked")
@@ -711,7 +720,4 @@ public class SchemeObject {
     }
     return HashCodeUtil.hash(HashCodeUtil.SEED, this.mData);
   }
-
-  private type mType;
-  private Object mData;
 }
