@@ -7,8 +7,9 @@ import java.util.Set;
 public class SchemeNatives {
   //Native Procedures:
   
-  public interface NativeProc{
-    SchemeObject call(SchemeObject args);
+  public static abstract class NativeProc{
+    public abstract SchemeObject call(SchemeObject args);
+    public int getArity() { return -1; }
   }
   
   //Math:
@@ -87,6 +88,8 @@ public class SchemeNatives {
     }
   });
   public static final SchemeObject sqrt = SchemeObject.makeNativeProc(new NativeProc(){
+    @Override
+    public int getArity() { return 1; }
     @Override
     public SchemeObject call(SchemeObject args) {
       double result = Math.sqrt(args.getCar().getNumber());
@@ -194,13 +197,7 @@ public class SchemeNatives {
   public static final SchemeObject length = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      int length = 0;
-      SchemeObject carArg = args.getCar();
-      while(!carArg.isEmptyList()){
-        carArg = carArg.getCdr();
-        length++;
-      }
-      return SchemeObject.makeNumber(length);
+      return SchemeObject.makeNumber(args.getCar().getListLength());
     }
   });
   public static final SchemeObject setCar = SchemeObject.makeNativeProc(new NativeProc(){

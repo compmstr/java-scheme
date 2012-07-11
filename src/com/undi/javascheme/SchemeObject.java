@@ -281,6 +281,16 @@ public class SchemeObject {
       return THE_EMPTY_LIST;
     }
   }
+  
+  public int getListLength(){
+    int length = 0;
+    SchemeObject subLst = this;
+    while(!subLst.isEmptyList()){
+      subLst = subLst.getCdr();
+      length++;
+    }
+    return length;
+  }
 
   public static SchemeObject car(SchemeObject obj) {
     return obj.getCar();

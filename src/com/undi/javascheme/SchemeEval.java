@@ -714,9 +714,21 @@ public class SchemeEval {
           procedure = eval(operator(exp), env);
           arguments = listOfValues(operands(exp), env);
           if(procedure.isNativeProc()){
+            int arity = procedure.getNativeProc().getArity();
+            if(arity != -1 && arity != arguments.getListLength()){
+              System.err.println("Native Method not found for " + exp.getCar().getSymbol() + " with "
+                  + arguments.getListLength() + " params");
+              System.exit(0);
+            }
             return procedure.getNativeProc().call(arguments);
           }else if(procedure.isCompoundProc()){
-            env = extendEnvironment(procedure.getCompoundProcParams(),
+            SchemeObject paramsList = procedure.getCompoundProcParams();
+            if(paramsList.getListLength() != arguments.getListLength()){
+              System.err.println("Method not found for " + exp.getCar().getSymbol() + " with "
+                  + arguments.getListLength() + " params");
+              System.exit(0);
+            }
+            env = extendEnvironment(paramsList,
                                     arguments,
                                     procedure.getCompoundProcEnv());
             exp = makeBegin(procedure.getCompoundProcBody());
