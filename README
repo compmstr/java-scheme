@@ -5,6 +5,7 @@ TODO:
   Make sequences all share an api (a-la clojure)
   Look into making a compiler to bytecode
   Macros
+  Loop/Recur construct
 
   Find some way to do java interop +Done+
     +Add Constructors/Method calls (<Class>. ...) (.<Method> target ...)
