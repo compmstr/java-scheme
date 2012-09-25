@@ -38,6 +38,7 @@ public class JavaScheme {
 				System.out.println(evaluator.eval(reader.read(), evaluator.getGlobalEnv()));
 			}catch(SchemeException e){
 					System.out.println("Scheme Error: " + e.getMessage());
+					//e.printStackTrace();
 					reader.clearInput();
 			}
     }

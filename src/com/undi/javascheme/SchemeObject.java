@@ -141,7 +141,7 @@ public class SchemeObject {
     return this.mType == type.JAVA_STATIC_METHOD;
   }
   public SchemeObject callJavaStaticMethod(SchemeObject args){
-    if(this.mType != type.JAVA_STATIC_METHOD){
+		if(!this.isJavaStaticMethod()){
       throw new SchemeException("Object Isn't a Java Static Method!");
     }
     Object[] argsArray = prepJavaArgs(args);

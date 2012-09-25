@@ -586,7 +586,7 @@ public class SchemeEval {
           //Not a variable, try for static field
           try{
             return SchemeObject.makeJavaObj(Reflector.getStaticField(varName, fieldName));
-          }catch(RuntimeException e){
+          }catch(Exception e){
             //Not a field, try for a static method 
             return SchemeObject.makeJavaStaticMethod(varName, fieldName);
           }
