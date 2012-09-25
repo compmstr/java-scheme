@@ -78,8 +78,7 @@ public class SchemeObject {
   }
   public Object callJavaConstructor(SchemeObject args){
     if(this.mType != type.JAVA_CONSTRUCTOR){
-      System.err.println("Object Isn't a Java Constructor!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Java Constructor!");
     }
     Object[] argsArray = prepJavaArgs(args);
     return Reflector.invokeStaticMethod((String)this.mData, "new", argsArray);
@@ -120,8 +119,7 @@ public class SchemeObject {
   
   public SchemeObject callJavaMethod(SchemeObject args){
     if(this.mType != type.JAVA_METHOD){
-      System.err.println("Object Isn't a Java Method!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Java Method!");
     }
     Object target = args.getCar().getJavaObj();
     Object[] argsArray = prepJavaArgs(args.getCdr());
@@ -144,8 +142,7 @@ public class SchemeObject {
   }
   public SchemeObject callJavaStaticMethod(SchemeObject args){
     if(this.mType != type.JAVA_STATIC_METHOD){
-      System.err.println("Object Isn't a Java Static Method!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Java Static Method!");
     }
     Object[] argsArray = prepJavaArgs(args);
     String className = ((String[]) this.mData)[0];
@@ -169,8 +166,7 @@ public class SchemeObject {
   
   public Object getJavaObj(){
     if(this.mType != type.JAVA_OBJ){
-      System.err.println("Object Isn't a Java Object!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Java Object!");
     }
     return this.mData;
   }
@@ -190,8 +186,7 @@ public class SchemeObject {
 
   public SchemeObject getCompoundProcParams() {
     if (this.mType != type.COMPOUND_PROC) {
-      System.err.println("Object Isn't a Compound Proc!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Compound Proc!");
     }
     SchemeObject[] data = (SchemeObject[]) this.mData;
     return data[0];
@@ -199,8 +194,7 @@ public class SchemeObject {
 
   public SchemeObject getCompoundProcBody() {
     if (this.mType != type.COMPOUND_PROC) {
-      System.err.println("Object Isn't a Compound Proc!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Compound Proc!");
     }
     SchemeObject[] data = (SchemeObject[]) this.mData;
     return data[1];
@@ -208,8 +202,7 @@ public class SchemeObject {
 
   public SchemeObject getCompoundProcEnv() {
     if (this.mType != type.COMPOUND_PROC) {
-      System.err.println("Object Isn't a Compound Proc!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Compound Proc!");
     }
     SchemeObject[] data = (SchemeObject[]) this.mData;
     return data[2];
@@ -233,8 +226,7 @@ public class SchemeObject {
 
   public SchemeNatives.NativeProc getNativeProc() {
     if (this.mType != type.NATIVE_PROC) {
-      System.err.println("Object Isn't a Native Proc!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Native Proc!");
     }
     return (SchemeNatives.NativeProc) this.mData;
   }
@@ -338,8 +330,7 @@ public class SchemeObject {
 
   public SchemeObject[] getPair() {
     if (this.mType != type.PAIR) {
-      System.err.println("Object Isn't a Pair!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Pair!");
     }
     return (SchemeObject[]) this.mData;
   }
@@ -398,8 +389,7 @@ public class SchemeObject {
 
   public double getNumber() {
     if (this.mType != type.NUMBER) {
-      System.err.println("Object Isn't a Number!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Number!");
     }
     return (Double) this.mData;
   }
@@ -431,8 +421,7 @@ public class SchemeObject {
 
   public boolean getBoolean() {
     if (this.mType != type.BOOLEAN) {
-      System.err.println("Object Isn't a Boolean!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Boolean!");
     }
     return (Boolean) this.mData;
   }
@@ -450,8 +439,7 @@ public class SchemeObject {
 
   public short getCharacter() {
     if (this.mType != type.CHARACTER) {
-      System.err.println("Object Isn't a Character!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Character!");
     }
     return (Short) this.mData;
   }
@@ -474,8 +462,7 @@ public class SchemeObject {
 
   public char[] getString() {
     if (this.mType != type.STRING) {
-      System.err.println("Object Isn't a String!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a String!");
     }
     return (char[]) this.mData;
   }
@@ -523,8 +510,7 @@ public class SchemeObject {
 
   public String getSymbol() {
     if (this.mType != type.SYMBOL) {
-      System.err.println("Object Isn't a Symbol!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Symbol!");
     }
     return (String) this.mData;
   }
@@ -551,8 +537,7 @@ public class SchemeObject {
   @SuppressWarnings("unchecked")
   public Vector<SchemeObject> getVector() {
     if (!this.isVector()) {
-      System.err.println("Object Isn't a Vector!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a Vector!");
     }
     return (Vector<SchemeObject>) this.mData;
   }
@@ -604,8 +589,7 @@ public class SchemeObject {
   @SuppressWarnings("unchecked")
   public HashMap<SchemeObject, SchemeObject> getHashMap() {
     if (!this.isHashMap()) {
-      System.err.println("Object Isn't a HashMap!");
-      System.exit(1);
+      throw new SchemeException("Object Isn't a HashMap!");
     }
     return (HashMap<SchemeObject, SchemeObject>) this.mData;
   }

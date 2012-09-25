@@ -50,6 +50,17 @@ public class SchemeReader {
     };
     
   }
+
+		/**
+		 * clears the rest of the input
+		 */
+		public void clearInput(){
+				try{
+						mBufIn.skip(mBufIn.available());
+				}catch(IOException ex){
+						System.err.println("Error clearing stream");
+				}
+		}
   
   public void closeStream(){
     try {
@@ -185,8 +196,7 @@ getString:
       tmp.append((char)getc());
     }
     if(!isDelimiter(peek())){
-      System.err.println("Number not followed by delimiter");
-      System.exit(1);
+			throw new SchemeException("Number not followed by delimiter");
     }
     String numString = tmp.toString();
     return SchemeObject.makeNumber(sign * Double.valueOf(numString));
@@ -204,8 +214,7 @@ getString:
     while(index < str.length){
       c = getc();
       if(c != str[index]){
-        System.err.println("Error, unexpected character");
-        System.exit(1);
+				throw new SchemeException("Error, unexpected character");
       }
       index++;
     }
@@ -217,8 +226,7 @@ getString:
    */
   public void peekExpectedDelimiter(){
     if(!isDelimiter(peek())){
-      System.err.println("Delimiter not found in peekExpectedDelimiter");
-      System.exit(1);
+			throw new SchemeException("Delimiter not found in peekExpectedDelimiter");
     }
   }
   
@@ -226,14 +234,11 @@ getString:
     int c;
     c = getc();
     if(c != '\\'){
-      System.err.println("Invalid character, no \\");
-      System.exit(1);
+			throw new SchemeException("Invalid character, no \\");
     }
     c = getc();
     if(isEOF((char)c)){
-      System.err.println("Incomplete Character Literal");
-      System.exit(1);
-      return null;
+			throw new SchemeException("Incomplete Character Literal");
     }
     switch(c){
     case 's':
@@ -266,8 +271,7 @@ getString:
       retVal = false;
     }else{
       retVal = false;
-      System.err.println("Invalid boolean: " + boolChar);
-      System.exit(1);
+			throw new SchemeException("Invalid boolean: " + boolChar);
     }
     return SchemeObject.makeBoolean(retVal);
   }
@@ -288,15 +292,13 @@ getString:
       //take in the improper list form
       c = peek();
       if(!isDelimiter(peek())){
-        System.err.println("Error: dot not followed by delimiter");
-        System.exit(1);
+				throw new SchemeException("Error: dot not followed by delimiter");
       }
       cdrObject = read();
       eatWhitespace();
       c = getc();
       if(c != ')'){
-        System.err.println("Error: no trailing right paren on dot form");
-        System.exit(1);
+        throw new SchemeException("Error: no trailing right paren on dot form");
       }
     }else{
       ungetc(c);
@@ -319,9 +321,7 @@ getString:
       ungetc(c);
       return SchemeObject.makeSymbol(buffer.toString());
     }else{
-      System.err.println("Symbol not followed by delimiter");
-      System.exit(1);
-      return null;
+      throw new SchemeException("Symbol not followed by delimiter");
     }
   }
   
@@ -349,9 +349,7 @@ getString:
       }
     }
 
-    System.err.println("Unsupported input type in read");
-    System.exit(1);
-    return null;
+    throw new SchemeException("Unsupported input type in read");
   }
   
   /**
@@ -386,8 +384,7 @@ getString:
       case 'f':
         return SchemeObject.type.BOOLEAN;
       default:
-        System.err.println("Unkown boolean or character literal");
-        System.exit(1);
+        throw new SchemeException("Unkown boolean or character literal");
       }
     }else if(c == '('){
       if(peek() == ')'){
@@ -398,8 +395,7 @@ getString:
     }
     
     if(retType == null){
-      System.err.println("Unsupported type read");
-      System.exit(1);
+      throw new SchemeException("Unsupported type read");
     }
     return retType;
   }

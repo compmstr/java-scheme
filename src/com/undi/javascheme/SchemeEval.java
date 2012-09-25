@@ -281,8 +281,7 @@ public class SchemeEval {
         if(rest.isEmptyList()){
           return sequenceToExp(condActions(first));
         }else{
-          System.err.println("else clause isn't last in cond ");
-          System.exit(1);
+					throw new SchemeException("else clause isn't last in cond ");
         }
       }else{
         return makeIf(condPredicate(first),
@@ -290,7 +289,6 @@ public class SchemeEval {
                       expandClauses(rest));
       }
     }
-    return null;
   }
   
   public SchemeObject condToIf(SchemeObject exp){
@@ -423,8 +421,7 @@ public class SchemeEval {
       try {
         fin = new FileInputStream(filename);
       } catch (FileNotFoundException e) {
-        System.err.println("File: " + filename + " not found for load");
-        return SchemeObject.FALSE;
+				throw new SchemeException("File: " + filename + " not found for load");
       }
       
       loadStream(fin, env);
@@ -618,8 +615,7 @@ public class SchemeEval {
       }
       env = enclosingEnvironment(env);
     }
-    System.err.println("Unbound Variable: " + var.getSymbol());
-    System.exit(1);
+		throw new SchemeException("Unbound Variable - " + var.getSymbol());
   }
   
   public void defineVariable(SchemeObject var, SchemeObject val, SchemeObject env){
@@ -654,8 +650,7 @@ public class SchemeEval {
           try{
             return lookupVariableValue(exp, env);
           }catch(IllegalArgumentException ex){
-            System.err.println("Unbound Variable: " + exp.getCar().getSymbol());
-            System.exit(1);
+						throw new SchemeException("Unbound Variable: " + exp.getCar().getSymbol());
           }
         }else if(isEval(exp)){
           return doEval(exp, env);
@@ -716,17 +711,15 @@ public class SchemeEval {
           if(procedure.isNativeProc()){
             int arity = procedure.getNativeProc().getArity();
             if(arity != -1 && arity != arguments.getListLength()){
-              System.err.println("Native Method not found for " + exp.getCar().getSymbol() + " with "
-                  + arguments.getListLength() + " params");
-              System.exit(0);
+							throw new SchemeException("Native Method not found for " + exp.getCar().getSymbol() + " with "
+																				+ arguments.getListLength() + " params");
             }
             return procedure.getNativeProc().call(arguments);
           }else if(procedure.isCompoundProc()){
             SchemeObject paramsList = procedure.getCompoundProcParams();
             if(paramsList.getListLength() != arguments.getListLength()){
-              System.err.println("Method not found for " + exp.getCar().getSymbol() + " with "
+							throw new SchemeException("Method not found for " + exp.getCar().getSymbol() + " with "
                   + arguments.getListLength() + " params");
-              System.exit(0);
             }
             env = extendEnvironment(paramsList,
                                     arguments,
@@ -740,18 +733,11 @@ public class SchemeEval {
           }else if(procedure.isJavaConstructor()){
             return SchemeObject.makeJavaObj(procedure.callJavaConstructor(arguments));
           }else{
-            System.err.println("Unsupported procedure type: " + exp);
-            System.exit(0);
+						throw new SchemeException("Unsupported procedure type: " + exp);
           }
         }else{
-          System.err.println("Unsupported expression type: " + exp);
-          System.exit(0);
+					throw new SchemeException("Unsupported expression type: " + exp);
         }
-        //Only want to run the while loop once
-        break;
       }
-  System.err.println("Illegal eval state");
-  System.exit(0);
-  return null;
   }
 }

@@ -34,7 +34,12 @@ public class JavaScheme {
     //REPL loop
     while(true){
       System.out.print("> ");
-      System.out.println(evaluator.eval(reader.read(), evaluator.getGlobalEnv()));
+			try{
+				System.out.println(evaluator.eval(reader.read(), evaluator.getGlobalEnv()));
+			}catch(SchemeException e){
+					System.out.println("Scheme Error: " + e.getMessage());
+					reader.clearInput();
+			}
     }
 
   }
