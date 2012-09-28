@@ -192,7 +192,7 @@ getString:
       getc();
       sign = -1;
     }
-    while(Character.isDigit(peek())){
+    while(Character.isDigit(peek()) || peek() == '.'){
       tmp.append((char)getc());
     }
     if(!isDelimiter(peek())){

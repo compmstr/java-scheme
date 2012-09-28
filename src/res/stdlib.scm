@@ -172,3 +172,8 @@
           ;Get the vector of keys, and look through it
           (set! retval (hashmap-key? lst item))))
       retval))
+
+(define (abs x)
+	(if (> 0 x)
+			(- 0 x)
+			x))

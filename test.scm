@@ -74,6 +74,18 @@
           (set! retval (contains?-test (hashmap-keys lst) item))))
       retval))
 
+;;Newton's approximation of a square root
+(define (n-sqrt x)
+	(newt-sqrt (/ x 2) x))
+
+(define (newt-sqrt init-guess x)
+  (let ((good-enough? (lambda (guess square)
+                        (< (abs (- (* guess guess) square)) 0.0001))))
+		(if (good-enough? init-guess x)
+				init-guess
+				(newt-sqrt (/ (+ init-guess (/ x init-guess)) 2.0)
+									 x))))
+
 (define (swing-test)
   (let ((panel (javax.swing.JPanel.))
         (greetButton (javax.swing.JButton. "Greet"))
