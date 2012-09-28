@@ -98,3 +98,24 @@
     (.pack frame)
     (.setDefaultCloseOperation frame javax.swing.JFrame/EXIT_ON_CLOSE)
     (.setVisible frame #t)))
+
+
+(define (factorial n)
+	(if (= n 1)
+			1
+			(* n (factorial (- n 1)))))
+
+(define (fact-iter x)
+	(fact-iter-fn 1 1 x))
+
+(define (fact-iter-fn acc step max)
+	(if (> step max)
+			acc
+			(fact-iter-fn (* step acc)
+										(+ step 1)
+										max)))
+
+(define (gcd-test a b)
+	(if (= b 0)
+			a
+			(gcd-test b (remainder a b))))
