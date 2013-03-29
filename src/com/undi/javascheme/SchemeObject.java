@@ -81,7 +81,11 @@ public class SchemeObject {
       throw new SchemeException("Object Isn't a Java Constructor!");
     }
     Object[] argsArray = prepJavaArgs(args);
-    return Reflector.invokeStaticMethod((String)this.mData, "new", argsArray);
+		try{
+			return Reflector.invokeStaticMethod((String)this.mData, "new", argsArray);
+		}catch(Exception e){
+				throw new SchemeException("Unable to call constructor -- " + e.getClass().getName() + " - " + e.getMessage(), e);
+		}
   }
   public boolean isJavaMethod(){
     return this.mType == type.JAVA_METHOD;

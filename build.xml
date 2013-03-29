@@ -25,7 +25,7 @@
         <delete dir="bin"/>
     </target>
     <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
+    <target depends="build-subprojects,build-project,build-jar" name="build"/>
     <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
@@ -52,5 +52,14 @@
         <java classname="com.undi.javascheme.JavaScheme" failonerror="true" fork="yes">
             <classpath refid="java-scheme.classpath"/>
         </java>
+    </target>
+    <target depends="build-project" name="build-jar">
+        <jar destfile="javaScheme.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="com.undi.javascheme.JavaScheme"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+        </jar>
     </target>
 </project>
