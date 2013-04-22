@@ -714,7 +714,12 @@ public class SchemeEval {
 							throw new SchemeException("Native Method not found for " + exp.getCar().getSymbol() + " with "
 																				+ arguments.getListLength() + " params");
             }
-            return procedure.getNativeProc().call(arguments);
+						try{
+							return procedure.getNativeProc().call(arguments);
+						}catch(Exception e){
+								e.printStackTrace();
+								throw new SchemeException("Error in native proc", e);
+						}
           }else if(procedure.isCompoundProc()){
             SchemeObject paramsList = procedure.getCompoundProcParams();
             if(paramsList.getListLength() != arguments.getListLength()){
