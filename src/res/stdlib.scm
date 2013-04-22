@@ -182,3 +182,8 @@
 	(if (= b 0)
 			a
 			(gcd b (remainder a b))))
+
+(define (reduce f acc lst)
+	(if (empty? lst)
+			acc
+			(reduce f (f acc (car lst)) (cdr lst))))

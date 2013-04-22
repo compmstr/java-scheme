@@ -119,3 +119,10 @@
 	(if (= b 0)
 			a
 			(gcd-test b (remainder a b))))
+
+(define (sum lst)
+	(reduce + 0 lst))
+
+(define (avg lst)
+	(/ (sum lst)
+		 (count lst)))
