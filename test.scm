@@ -96,7 +96,7 @@
     (.add frame greetButton java.awt.BorderLayout/SOUTH)
     (.add frame panel java.awt.BorderLayout/CENTER)
     (.pack frame)
-    (.setDefaultCloseOperation frame javax.swing.JFrame/EXIT_ON_CLOSE)
+    ;;(.setDefaultCloseOperation frame javax.swing.JFrame/EXIT_ON_CLOSE)
     (.setVisible frame #t)))
 
 
