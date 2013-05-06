@@ -152,7 +152,17 @@ public class SchemeObject {
     String className = ((String[]) this.mData)[0];
     String methodName = ((String[]) this.mData)[1];
     //TODO - cast this to the appropriate SchemeObject
-    Object retObj = Reflector.invokeStaticMethod(className, methodName, argsArray);
+		Object retObj;
+		try{
+				retObj = Reflector.invokeStaticMethod(className, methodName, argsArray);
+		}catch(Exception e){
+				//Attempt to prepend java.lang to className
+				if(className.startsWith("java.lang.")){
+						throw new SchemeException("Error invoking static method: " + e, e);
+				}else{
+						return makeJavaStaticMethod("java.lang." + className, methodName).callJavaStaticMethod(args);
+				}
+		}
     return makeJavaObj(retObj);
   }
   
