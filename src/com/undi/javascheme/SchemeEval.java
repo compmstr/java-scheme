@@ -26,14 +26,14 @@ public class SchemeEval {
                     proc,
                     this.globalEnvironment);
   }
-  
+
   private final SchemeObject globalEnv = SchemeObject.makeNativeProc(new SchemeNatives.NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
       return getGlobalEnv();
-    }   
+    }
   });
-  
+
   public SchemeEval(){
     //load the stdlib by default
     this(true);
@@ -101,7 +101,7 @@ public class SchemeEval {
     addNativeProc("hashmap-key?", SchemeNatives.hashMapContainsKey);
     addNativeProc("hashmap-val?", SchemeNatives.hashMapContainsVal);
     addNativeProc("hashmap-merge", SchemeNatives.hashMapMerge);
-    
+
     addNativeProc("globalEnv", globalEnv);
     
     //Load the standard lib
@@ -318,7 +318,7 @@ public class SchemeEval {
       return SchemeObject.cons(carObject, prepApplyOperands(exp.getCdr(), env));
     }
   }
-  public SchemeObject makeApply(SchemeObject operation, SchemeObject operands, SchemeObject env){
+  public SchemeObject makeApply(SchemeObject operation, SchemeObject operands){
     return SchemeObject.cons(operation, operands);
   }
   
@@ -703,7 +703,7 @@ public class SchemeEval {
           exp = letToApplication(exp);
           continue TAILCALL;
         }else if(isApply(exp)){
-          exp = makeApply(applyOperation(exp), applyOperands(exp, env), env);
+          exp = makeApply(applyOperation(exp), applyOperands(exp, env));
           continue TAILCALL;
         }else if(isApplication(exp)){
           procedure = eval(operator(exp), env);

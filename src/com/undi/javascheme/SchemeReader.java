@@ -176,7 +176,7 @@ getString:
          break;
        }
      }else if(newChar == '"'){
-       break getString;
+       break;
      }else{
        tempString.append((char)newChar);
      }

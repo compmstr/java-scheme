@@ -11,7 +11,7 @@ public class SchemeObject {
     NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NATIVE_PROC, 
     COMPOUND_PROC, VECTOR, HASH_MAP,
     JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, JAVA_STATIC_METHOD, NUM_TYPES
-  };
+  }
   
   private type mType;
   private Object mData;
@@ -383,7 +383,7 @@ public class SchemeObject {
       tempString.append(' ');
       cdrObj.writePair(tempString);
     } else if (cdrObj.isEmptyList()) {
-      return;
+      //return;
     } else {
       tempString.append(" . ");
       tempString.append(cdrObj);
@@ -669,9 +669,9 @@ public class SchemeObject {
       for (SchemeObject key : myMap.keySet()) {
         nextEntry = myMap.get(key);
         if(nextEntry.isHashMap() || nextEntry.isPair()){
-          tempString.append(key + " => *Hash Map or List*, ");
+          tempString.append(key).append(" => *Hash Map or List*, ");
         }else{
-          tempString.append(key + " => " + nextEntry + ", ");
+          tempString.append(key).append(" => ").append(nextEntry).append(", ");
         }
       }
       // Clear out the last ", "

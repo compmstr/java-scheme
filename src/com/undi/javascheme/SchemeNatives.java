@@ -116,13 +116,13 @@ public class SchemeNatives {
   public static final SchemeObject greaterThan = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      double curNum = (double)args.getCar().getNumber();
+      double curNum = args.getCar().getNumber();
       args = args.getCdr();
       while(!args.isEmptyList()){
-        if(curNum <= (double)args.getCar().getNumber()){
+        if(curNum <= args.getCar().getNumber()){
           return SchemeObject.FALSE;
         }
-        curNum = (double)args.getCar().getNumber();
+        curNum = args.getCar().getNumber();
         args = args.getCdr();
       }
       return SchemeObject.TRUE;
@@ -131,13 +131,13 @@ public class SchemeNatives {
   public static final SchemeObject greaterThanEqual = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      double curNum = (double)args.getCar().getNumber();
+      double curNum = args.getCar().getNumber();
       args = args.getCdr();
       while(!args.isEmptyList()){
-        if(curNum < (double)args.getCar().getNumber()){
+        if(curNum < args.getCar().getNumber()){
           return SchemeObject.FALSE;
         }
-        curNum = (double)args.getCar().getNumber();
+        curNum = args.getCar().getNumber();
         args = args.getCdr();
       }
       return SchemeObject.TRUE;
@@ -147,13 +147,13 @@ public class SchemeNatives {
   public static final SchemeObject lessThan = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      double curNum = (double)args.getCar().getNumber();
+      double curNum = args.getCar().getNumber();
       args = args.getCdr();
       while(!args.isEmptyList()){
-        if(curNum >= (double)args.getCar().getNumber()){
+        if(curNum >= args.getCar().getNumber()){
           return SchemeObject.FALSE;
         }
-        curNum = (double)args.getCar().getNumber();
+        curNum = args.getCar().getNumber();
         args = args.getCdr();
       }
       return SchemeObject.TRUE;
@@ -162,13 +162,13 @@ public class SchemeNatives {
   public static final SchemeObject lessThanEqual = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      double curNum = (double)args.getCar().getNumber();
+      double curNum = args.getCar().getNumber();
       args = args.getCdr();
       while(!args.isEmptyList()){
-        if(curNum > (double)args.getCar().getNumber()){
+        if(curNum > args.getCar().getNumber()){
           return SchemeObject.FALSE;
         }
-        curNum = (double)args.getCar().getNumber();
+        curNum = args.getCar().getNumber();
         args = args.getCdr();
       }
       return SchemeObject.TRUE;
@@ -302,7 +302,7 @@ public class SchemeNatives {
   public static final SchemeObject characterToNumber = SchemeObject.makeNativeProc(new NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
-      return SchemeObject.makeNumber((short)args.getCar().getCharacter());
+      return SchemeObject.makeNumber(args.getCar().getCharacter());
     }
   });
   public static final SchemeObject eqp = SchemeObject.makeNativeProc(new NativeProc(){
