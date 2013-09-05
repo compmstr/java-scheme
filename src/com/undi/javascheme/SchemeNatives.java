@@ -1,6 +1,5 @@
 package com.undi.javascheme;
 
-import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.Set;
 
