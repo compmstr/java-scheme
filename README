@@ -2,6 +2,7 @@ My interpretation of the (no longer meta-circular)
 Scheme interpreter from SICP
 
 TODO:
+  Implement apply/eval
   Make sequences all share an api (a-la clojure)
   Look into making a compiler to bytecode
   Macros
