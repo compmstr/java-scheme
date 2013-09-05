@@ -1,7 +1,10 @@
 package com.undi.javascheme;
 
+import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.Set;
+
+import com.undi.util.Reflector;
 
 
 public class SchemeNatives {
@@ -556,6 +559,49 @@ public class SchemeNatives {
       
       return map;
     }
+  });
+  
+  //Java interop
+  public static final SchemeObject javaNew = SchemeObject.makeNativeProc(new NativeProc() {
+	  @Override
+	  public SchemeObject call(SchemeObject args) {
+		  SchemeObject classSpec = args.getCar();
+		  Class cls = null;
+		  if(classSpec.isSymbol()){
+			  cls = Reflector.classFromName(classSpec.getSymbol());
+		  }else if(classSpec.isJavaObj()){
+			  try{
+				  cls = (Class)classSpec.getJavaObj();
+			  }catch(Exception e){}
+		  }
+		  if(cls == null){
+			  throw new SchemeException("Unable to find class");
+		  }
+		  Object[] otherArgs = args.prepJavaArgs(args.getCdr());
+		  return SchemeObject.makeJavaObj(Reflector.invokeStaticMethod(cls, "new", otherArgs));
+	  }
+  });
+  
+  /**
+   * (. <instance/class> '<method> <args>...)
+   */
+  public static final SchemeObject javaDot = SchemeObject.makeNativeProc(new NativeProc() {
+	@Override
+	public SchemeObject call(SchemeObject args) {
+		Object inst = args.getCar().getJavaObj();
+		String method = args.getCdr().getCar().getSymbol();
+		Object[] methodArgs = args.prepJavaArgs(args.getCdr().getCdr());
+		
+		Object ret;
+		if(inst instanceof Class){
+			//static method
+			ret = Reflector.invokeStaticMethod((Class)inst, method, methodArgs);
+		}else{
+			//regular method
+			ret = Reflector.invokeInstanceMethod(inst, method, methodArgs);
+		}
+		return SchemeObject.makeJavaObj(ret);
+	}
   });
   
 }

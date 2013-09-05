@@ -187,3 +187,9 @@
 	(if (empty? lst)
 			acc
 			(reduce f (f acc (car lst)) (cdr lst))))
+
+(define (comp f g)
+	(lambda (x) (f (g x))))
+
+(define (juxt f g)
+	(lambda (x) (list (f x) (g x))))

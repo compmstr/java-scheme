@@ -48,6 +48,10 @@ public class SchemeReader {
         return SchemeObject.THE_EMPTY_LIST;
         } 
     };
+    this.readFuncs[SchemeObject.type.KEYWORD.ordinal()] = new ReadFunc() {
+		@Override
+		public SchemeObject read() { return readKeyword(); }
+	};
     
   }
 
@@ -313,7 +317,7 @@ getString:
     
     int c = getc();
     while(isInitial(c) || Character.isDigit(c) ||
-        c == '+' || c == '-' || c == '.' || c == '/' || c == '_'){
+        c == '+' || c == '-' || c == '.' || c == '/' || c == '_' || c == '&'){
       buffer.append((char)c);
       c = getc();
     }
@@ -323,6 +327,11 @@ getString:
     }else{
       throw new SchemeException("Symbol not followed by delimiter");
     }
+  }
+  
+  public SchemeObject readKeyword(){
+	  SchemeObject sym = readSymbol();
+	  return SchemeObject.makeKeyword(sym.getSymbol());
   }
   
   /**
@@ -372,7 +381,7 @@ getString:
       ungetc(c);
       return SchemeObject.type.NUMBER;
     }else if(isInitial(c) ||
-              ((c == '+' || c == '-') && isDelimiter(peek()))){
+              ((c == '+' || c == '-' || c == '&') && isDelimiter(peek()))){
       ungetc(c);
       return SchemeObject.type.SYMBOL;
     }else if(c == '#'){
@@ -392,6 +401,8 @@ getString:
       }else{
         retType = SchemeObject.type.PAIR;
       }
+    }else if(c == ':'){
+    	retType = SchemeObject.type.KEYWORD;
     }
     
     if(retType == null){

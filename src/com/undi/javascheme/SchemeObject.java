@@ -1,6 +1,7 @@
 package com.undi.javascheme;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import com.undi.util.HashCodeUtil;
 import com.undi.util.Reflector;
@@ -10,8 +11,10 @@ public class SchemeObject {
   public static enum type {
     NUMBER, BOOLEAN, CHARACTER, STRING, SYMBOL, PAIR, EMPTY_LIST, NATIVE_PROC, 
     COMPOUND_PROC, VECTOR, HASH_MAP,
-    JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, JAVA_STATIC_METHOD, NUM_TYPES
+    JAVA_OBJ, JAVA_METHOD, JAVA_CONSTRUCTOR, JAVA_STATIC_METHOD, KEYWORD, NUM_TYPES
   }
+  
+  private static final Map<String, SchemeObject> keywords = new HashMap<String, SchemeObject>();
   
   private type mType;
   private Object mData;
@@ -168,21 +171,48 @@ public class SchemeObject {
   
   //Java Objects
   /**
-   * @param className - the class name for the object to create
-   * @param params - parameters to pass to the constructor
+   * Returns a java object
+   * automatically converts number, strings, and booleans to scheme objects
+   * @param data
+   * @return
    */
   public static SchemeObject makeJavaObj(Object data){
+	  if(data instanceof Number){
+		  return makeNumber(Double.valueOf(data.toString()));
+	  }else if(data instanceof String){
+		  return makeString((String) data);
+	  }else if(data instanceof Boolean){
+		  return makeBoolean((Boolean) data);
+	  }
     SchemeObject obj = new SchemeObject();
     obj.mType = type.JAVA_OBJ;
     obj.mData = data;
     return obj;
   }
   
+  public boolean isJavaObj(){
+	  return this.mType == type.JAVA_OBJ;
+  }
+  
   public Object getJavaObj(){
-    if(this.mType != type.JAVA_OBJ){
+    if(!isJavaObj()){
       throw new SchemeException("Object Isn't a Java Object!");
     }
     return this.mData;
+  }
+  
+  //Keywords
+  public boolean isKeyword(){
+	  return mType == type.KEYWORD;
+  }
+  public static SchemeObject makeKeyword(String name){
+	  if(!keywords.containsKey(name)){
+		  SchemeObject obj = new SchemeObject();
+		  obj.mType = type.KEYWORD;
+		  obj.mData = name;
+		  keywords.put(name, obj);
+	  }
+	  return keywords.get(name);
   }
   
   // Compound Proc
@@ -649,6 +679,9 @@ public class SchemeObject {
     case NATIVE_PROC:
       tempString.append("#<native procedure>");
       break;
+    case KEYWORD:
+    	tempString.append(':').append((String)this.mData);
+    	break;
     case VECTOR:
       tempString.append("#(");
       Vector<SchemeObject> data = this.getVector();

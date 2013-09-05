@@ -18,7 +18,7 @@ public class SchemeEval {
     return this.globalEnvironment;
   }
   public boolean isSelfEvaluating(SchemeObject obj){
-    return obj.isString() || obj.isBoolean() || obj.isNumber() || obj.isCharacter();
+    return obj.isString() || obj.isBoolean() || obj.isNumber() || obj.isCharacter() || obj.isKeyword();
   }
   
   public void addNativeProc(String symbol, SchemeObject proc){
@@ -101,6 +101,9 @@ public class SchemeEval {
     addNativeProc("hashmap-key?", SchemeNatives.hashMapContainsKey);
     addNativeProc("hashmap-val?", SchemeNatives.hashMapContainsVal);
     addNativeProc("hashmap-merge", SchemeNatives.hashMapMerge);
+    
+    addNativeProc("new", SchemeNatives.javaNew);
+    addNativeProc(".", SchemeNatives.javaDot);
 
     addNativeProc("globalEnv", globalEnv);
     
@@ -182,6 +185,27 @@ public class SchemeEval {
   }
   public SchemeObject lambdaBody(SchemeObject exp){
     return SchemeObject.cddr(exp);
+  }
+  /**
+   * If lambda arguments provided has a variadic argument, return it's symbol
+   * Otherwise, return null
+   * @param lambdaArgs
+   * @return
+   */
+  public boolean isLambdaVarargs(SchemeObject lambdaParams){
+	  int len = lambdaParams.getListLength();
+	  if(len < 2){
+		  return false;
+	  }
+	  SchemeObject subParams = lambdaParams;
+	  for(int i = 1; i < len - 1; i++){
+		  subParams = subParams.getCdr();
+	  }
+	  if(subParams.getCar().getSymbol().equals("&")){
+		  return true;
+	  }else{
+		  return false;
+	  }
   }
   
   //Begin stuff
@@ -594,7 +618,7 @@ public class SchemeEval {
       }
     }
     //Check for classes/methods
-    if(var.getSymbol().startsWith(".")){
+    if(var.getSymbol().startsWith(".") && var.getSymbol().length() > 1){
       System.out.println("Java method/member: " + var.getSymbol().substring(1));
       return SchemeObject.makeJavaMethod(var.getSymbol().substring(1));
     }else if(var.getSymbol().endsWith(".")){
@@ -602,6 +626,12 @@ public class SchemeEval {
       System.out.println("Java Constructor: " + className);
       return SchemeObject.makeJavaConstructor(className);
     }
+    try{
+    	Class cls = Reflector.classFromName(var.getSymbol());
+    	if(cls != null){
+    		return SchemeObject.makeJavaObj(cls);
+    	}
+    }catch(Exception e){ }
     throw new IllegalArgumentException("Unbound Variable: " + var.getSymbol());
   }
   
@@ -722,13 +752,29 @@ public class SchemeEval {
 						}
           }else if(procedure.isCompoundProc()){
             SchemeObject paramsList = procedure.getCompoundProcParams();
-            if(paramsList.getListLength() != arguments.getListLength()){
-							throw new SchemeException("Method not found for " + exp.getCar().getSymbol() + " with "
-                  + arguments.getListLength() + " params");
+            if(isLambdaVarargs(paramsList)){
+            	SchemeObject subParams = paramsList;
+            	SchemeObject subArgs = arguments;
+            	int numRegArgs = subParams.getListLength() - 2;
+            	SchemeObject varArgName;
+            	for(int i = 0; i < numRegArgs; i++){
+            		subParams = subParams.getCdr();
+            		subArgs = subArgs.getCdr();
+            	}
+            	varArgName = subParams.getCdr().getCar();
+            	subParams.setCar(varArgName);
+            	subParams.setCdr(SchemeObject.THE_EMPTY_LIST);
+            	subArgs.setCar(SchemeObject.makePair(subArgs.getCar(), subArgs.getCdr()));
+            	subArgs.setCdr(SchemeObject.THE_EMPTY_LIST);
+            }else{
+            	if(paramsList.getListLength() != arguments.getListLength()){
+            		throw new SchemeException("Method not found for " + exp.getCar().getSymbol() + " with "
+            				+ arguments.getListLength() + " params");
+            	}
             }
             env = extendEnvironment(paramsList,
-                                    arguments,
-                                    procedure.getCompoundProcEnv());
+            		arguments,
+            		procedure.getCompoundProcEnv());
             exp = makeBegin(procedure.getCompoundProcBody());
             continue TAILCALL;
           }else if(procedure.isJavaMethod()){
