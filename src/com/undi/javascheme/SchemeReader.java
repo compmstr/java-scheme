@@ -410,4 +410,18 @@ getString:
     }
     return retType;
   }
+  
+  public static SchemeReader getStringReader(String s){
+	  InputStream in = new ByteArrayInputStream(s.getBytes());
+	  SchemeReader reader = new SchemeReader(in);
+	  return reader;
+  }
+
+  public static SchemeObject readFromString(String s){
+	  SchemeReader reader = getStringReader(s);
+	  SchemeObject obj = reader.read();
+	  reader.closeStream();
+	  return obj;
+  }
+  
 }

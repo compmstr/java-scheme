@@ -1,5 +1,7 @@
 package com.undi.javascheme;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Set;
 
@@ -603,4 +605,11 @@ public class SchemeNatives {
 	}
   });
   
+  public static final SchemeObject read = SchemeObject.makeNativeProc(new NativeProc() {
+	@Override
+	public SchemeObject call(SchemeObject args) {
+		String s = new String(args.getCar().getString());
+		return SchemeReader.readFromString(s);
+	}
+  });
 }

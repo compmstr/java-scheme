@@ -26,7 +26,11 @@ public class SchemeEval {
                     proc,
                     this.globalEnvironment);
   }
-
+  
+  public void addGlobalVar(String symbol, SchemeObject val){
+	  defineVariable(SchemeObject.makeSymbol(symbol), val, globalEnvironment);
+  }
+  
   private final SchemeObject globalEnv = SchemeObject.makeNativeProc(new SchemeNatives.NativeProc(){
     @Override
     public SchemeObject call(SchemeObject args) {
@@ -78,6 +82,7 @@ public class SchemeEval {
     addNativeProc("eq?", SchemeNatives.eqp);
     addNativeProc("print", SchemeNatives.print);
     addNativeProc("concat", SchemeNatives.concat);
+    addNativeProc("read", SchemeNatives.read);
     
     addNativeProc("vector", SchemeNatives.vector);
     addNativeProc("vector?", SchemeNatives.vectorp);
@@ -525,9 +530,8 @@ public class SchemeEval {
   }
   
   public SchemeObject doEval(SchemeObject exp, SchemeObject env){
-    char[] stringToEval = evalString(exp);
-    InputStream in = new ByteArrayInputStream(new String(stringToEval).getBytes());
-    SchemeReader reader = new SchemeReader(in);
+    String stringToEval = new String(evalString(exp));
+    SchemeReader reader = SchemeReader.getStringReader(stringToEval);
     SchemeObject obj = reader.read();
     SchemeObject retObj = null;
     while(obj != null){
