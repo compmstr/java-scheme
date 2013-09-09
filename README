@@ -1,6 +1,9 @@
 My interpretation of the (no longer meta-circular)
 Scheme interpreter from SICP
 
+BUGS:
+  varargs only works once, appears to modify parameter list upon call
+
 TODO:
   Implement apply/eval
   Make sequences all share an api (a-la clojure)
