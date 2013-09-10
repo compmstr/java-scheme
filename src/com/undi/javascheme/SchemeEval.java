@@ -192,8 +192,7 @@ public class SchemeEval {
     return SchemeObject.cddr(exp);
   }
   /**
-   * If lambda arguments provided has a variadic argument, return it's symbol
-   * Otherwise, return null
+   * If lambda arguments provided has a variadic argument
    * @param lambdaArgs
    * @return
    */
@@ -758,16 +757,23 @@ public class SchemeEval {
             SchemeObject paramsList = procedure.getCompoundProcParams();
             if(isLambdaVarargs(paramsList)){
             	SchemeObject subParams = paramsList;
+            	SchemeObject newParamsBuilder = null;
             	SchemeObject subArgs = arguments;
             	int numRegArgs = subParams.getListLength() - 2;
             	SchemeObject varArgName;
             	for(int i = 0; i < numRegArgs; i++){
+            		if(newParamsBuilder == null){
+            			newParamsBuilder = SchemeObject.makePair(subParams.getCar(), SchemeObject.THE_EMPTY_LIST);
+            		}else{
+            			newParamsBuilder = SchemeObject.concatList(newParamsBuilder, 
+            					SchemeObject.makePair(subParams.getCar(), SchemeObject.THE_EMPTY_LIST));
+            		}
             		subParams = subParams.getCdr();
             		subArgs = subArgs.getCdr();
             	}
             	varArgName = subParams.getCdr().getCar();
-            	subParams.setCar(varArgName);
-            	subParams.setCdr(SchemeObject.THE_EMPTY_LIST);
+            	paramsList = SchemeObject.concatList(newParamsBuilder, 
+            			SchemeObject.makePair(varArgName, SchemeObject.THE_EMPTY_LIST));
             	subArgs.setCar(SchemeObject.makePair(subArgs.getCar(), subArgs.getCdr()));
             	subArgs.setCdr(SchemeObject.THE_EMPTY_LIST);
             }else{
